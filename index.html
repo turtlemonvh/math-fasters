@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Math Fasters</title>
+<meta name="description" content="A space arcade game for practising math facts.">
+<meta name="theme-color" content="#141a33">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <section id="s-pilots" class="screen active">
+    <h1 class="logo">MATH <span>FASTERS</span></h1>
+    <h2>Who is flying?</h2>
+    <div id="pilot-list" class="pilot-list"></div>
+  </section>
+
+  <section id="s-new" class="screen">
+    <h2>New pilot</h2>
+    <form id="new-form" class="panel" autocomplete="off">
+      <label for="new-name">Pilot name</label>
+      <input id="new-name" type="text" maxlength="14" placeholder="Type a name" required>
+      <span class="label">Ship colour</span>
+      <div id="new-colors" class="swatches"></div>
+      <div class="row">
+        <button type="button" class="btn ghost" data-act="back-pilots">Cancel</button>
+        <button type="submit" class="btn primary">Ready for launch</button>
+      </div>
+    </form>
+  </section>
+
+  <section id="s-map" class="screen">
+    <header class="bar">
+      <button class="btn ghost small" data-act="back-pilots">‹ Pilots</button>
+      <div id="map-pilot" class="who"></div>
+      <button id="gear" class="gear" aria-label="Grown-up settings: hold for 2 seconds">
+        <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.6 7.6 0 0 0-1.7-1L15 3.5h-4l-.4 2.5a7.6 7.6 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1c.5.4 1.1.8 1.7 1l.4 2.5h4l.4-2.5c.6-.2 1.2-.6 1.7-1l2.4 1 2-3.4-2.2-1.6zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>
+      </button>
+    </header>
+    <h2>Choose a mission</h2>
+    <div id="mission-list" class="mission-list"></div>
+    <p class="hint">Grown-ups: hold the gear for 2 seconds to change settings.</p>
+  </section>
+
+  <section id="s-play" class="screen">
+    <div class="hud">
+      <button class="btn ghost small" data-act="pause" aria-label="Pause">❚❚</button>
+      <div id="hud-wave" class="hud-item"></div>
+      <div id="hud-score" class="hud-score">0</div>
+      <div id="hud-mult" class="hud-mult"></div>
+      <div id="hud-shields" class="hud-shields" aria-label="Shields"></div>
+    </div>
+    <div class="stage"><canvas id="game"></canvas></div>
+    <div id="console" class="console" aria-live="polite"></div>
+    <div id="pause" class="overlay" hidden>
+      <div class="panel center">
+        <h2>Paused</h2>
+        <button class="btn primary" data-act="resume">Keep flying</button>
+        <button class="btn ghost" data-act="quit">Quit mission</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="s-result" class="screen">
+    <div id="result" class="panel center result"></div>
+  </section>
+
+  <section id="s-settings" class="screen">
+    <header class="bar">
+      <h2 id="set-title">Grown-up settings</h2>
+      <button class="btn primary small" data-act="settings-done">Done</button>
+    </header>
+    <div id="settings" class="settings"></div>
+  </section>
+
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

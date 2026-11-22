@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Math Fasters Game Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: one reading column of numbered plan sections; mock-ups break out as framed "screens". Single dark theme by choice: the page sits in the game's own world. */
+:root{
+  color-scheme: dark;
+  --space:#141a33;      /* page background, deep indigo */
+  --panel:#1e2648;      /* raised surfaces */
+  --line:#34407a;       /* borders */
+  --ink:#eef0fb;        /* body text */
+  --muted:#a9b1d6;      /* secondary text */
+  --amber:#ffb84d;      /* accent: the thing to act on */
+  --teal:#4fd6c4;       /* correct / go */
+  --coral:#ff7a6b;      /* wrong / danger */
+  --display:"Chakra Petch","Trebuchet MS",sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html{background:var(--space)}
+body{margin:0;background:var(--space);color:var(--ink);font:17px/1.6 var(--body)}
+main{max-width:860px;margin:0 auto;padding:40px 20px 80px;display:flex;flex-direction:column;gap:44px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.2;margin:0}
+h1{font-size:2.3rem}
+h2{font-size:1.45rem;color:var(--amber)}
+h3{font-size:1.05rem;margin-top:6px}
+p,ul,ol{margin:0;max-width:68ch}
+ul,ol{padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
+section{display:flex;flex-direction:column;gap:14px}
+.lede{color:var(--muted);font-size:1.1rem}
+.note{border-left:4px solid var(--amber);background:var(--panel);padding:12px 16px;border-radius:0 8px 8px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.card b{font-family:var(--display)}
+.tag{font-family:var(--display);font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--teal)}
+.tag.later{color:var(--muted)}
+figure{margin:0;display:flex;flex-direction:column;gap:8px}
+figcaption{color:var(--muted);font-size:.95rem;max-width:68ch}
+svg{max-width:100%;height:auto;display:block;border-radius:12px;border:1px solid var(--line)}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:520px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--display);color:var(--muted);font-size:.85rem;letter-spacing:.05em;text-transform:uppercase}
+code{background:var(--panel);padding:1px 6px;border-radius:4px;font-size:.92em}
+.q{background:var(--panel);border:1px dashed var(--amber);border-radius:10px;padding:12px 16px}
+.q b{color:var(--amber)}
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <section>
+    <h1>Math Fasters: game plan</h1>
+    <p class="lede">A browser arcade game for practising math facts on a tablet, phone or computer. First playable scene: Asteroid Blast, multiplication with numbers up through 7. Target: kids testing within 4 hours.</p>
+    <p class="note">This is an original game with the same kind of play you remember: quick fact drills wrapped in arcade scenes, with levels to climb. It has its own name, characters, art and sounds and does not copy Math Blaster's.</p>
+  </section>
+</header>
+
+<section id="decided">
+  <h2>1. What you decided</h2>
+  <div class="grid">
+    <div class="card"><span class="tag">First scene</span><b>Asteroid Blast</b><span>A fact shows on the console. Tap the asteroid carrying the right answer.</span></div>
+    <div class="card"><span class="tag">Pressure</span><b>Full arcade</b><span>Shields (lives), falling rocks, and a real game over.</span></div>
+    <div class="card"><span class="tag">Hosting</span><b>GitHub Pages</b><span>Public repo, one link for every device. Profiles stay on each device.</span></div>
+  </div>
+</section>
+
+<section id="scene">
+  <h2>2. Asteroid Blast: how it plays</h2>
+  <figure>
+    <svg viewBox="0 0 800 500" role="img" aria-label="Mock-up of the Asteroid Blast play screen">
+      <rect width="800" height="500" fill="#0c1024"/>
+      <g fill="#eef0fb" opacity=".7"><circle cx="60" cy="90" r="1.5"/><circle cx="210" cy="40" r="1"/><circle cx="330" cy="150" r="1.5"/><circle cx="480" cy="70" r="1"/><circle cx="610" cy="200" r="1.5"/><circle cx="730" cy="110" r="1"/><circle cx="120" cy="260" r="1"/><circle cx="700" cy="330" r="1.5"/><circle cx="420" cy="290" r="1"/><circle cx="260" cy="340" r="1.5"/></g>
+      <!-- HUD -->
+      <g font-family="Chakra Petch,sans-serif" font-weight="700">
+        <text x="24" y="38" fill="#a9b1d6" font-size="16">WAVE 2 · 4 of 10</text>
+        <text x="400" y="38" fill="#ffb84d" font-size="20" text-anchor="middle">1,250</text>
+        <g fill="#4fd6c4"><path d="M700 22h20v12l-10 10-10-10z"/><path d="M728 22h20v12l-10 10-10-10z"/></g>
+        <path d="M756 22h20v12l-10 10-10-10z" fill="none" stroke="#34407a" stroke-width="2"/>
+      </g>
+      <!-- asteroids -->
+      <g font-family="Chakra Petch,sans-serif" font-weight="700" font-size="34" text-anchor="middle">
+        <g><path d="M70 150l40-28 48 10 22 40-14 44-50 16-42-24z" fill="#5a628f" stroke="#8b94c9" stroke-width="3"/><text x="118" y="192" fill="#fff">36</text></g>
+        <g><path d="M250 90l44-22 44 18 14 44-26 38-52 4-34-34z" fill="#5a628f" stroke="#8b94c9" stroke-width="3"/><text x="296" y="140" fill="#fff">48</text></g>
+        <g><path d="M450 190l40-28 48 10 22 40-14 44-50 16-42-24z" fill="#5a628f" stroke="#ffb84d" stroke-width="4"/><text x="498" y="232" fill="#fff">42</text></g>
+        <g><path d="M630 110l44-22 44 18 14 44-26 38-52 4-34-34z" fill="#5a628f" stroke="#8b94c9" stroke-width="3"/><text x="676" y="160" fill="#fff">35</text></g>
+      </g>
+      <!-- laser + ship -->
+      <line x1="400" y1="388" x2="494" y2="246" stroke="#4fd6c4" stroke-width="5" stroke-linecap="round"/>
+      <path d="M400 372l26 46h-52z" fill="#ffb84d"/><rect x="386" y="418" width="28" height="8" fill="#ff7a6b"/>
+      <!-- danger line + console -->
+      <line x1="0" y1="432" x2="800" y2="432" stroke="#ff7a6b" stroke-width="2" stroke-dasharray="8 8" opacity=".6"/>
+      <rect x="240" y="440" width="320" height="52" rx="10" fill="#1e2648" stroke="#34407a" stroke-width="2"/>
+      <text x="400" y="477" font-family="Chakra Petch,sans-serif" font-weight="700" font-size="34" fill="#eef0fb" text-anchor="middle">6 × 7 = ?</text>
+    </svg>
+    <figcaption>Play screen. Top: wave progress, score, shields. Bottom: the fact to solve. The layout reflows for a phone held upright.</figcaption>
+  </figure>
+  <ul>
+    <li><b>One fact at a time.</b> Four asteroids drift down, each carrying a number. Tap the right one and the ship blasts it. Big touch targets; mouse and number keys 1 to 4 also work.</li>
+    <li><b>Three shields.</b> A wrong tap or a right answer that reaches the red line costs a shield. Zero shields is game over.</li>
+    <li><b>Waves of 10 facts.</b> Each wave falls a little faster. Clearing a wave restores one shield. A mission is 3 waves.</li>
+    <li><b>Score rewards speed.</b> Faster blasts score more, and a streak of right answers builds a multiplier.</li>
+    <li><b>Misses still teach.</b> On a miss the game pauses a beat and shows the full fact (6 × 7 = 42). That fact comes back two or three turns later, and more often in later games.</li>
+    <li><b>Wrong answers are believable.</b> Decoys come from neighbouring facts (6 × 6, 7 × 7, 6 × 8) so she can't win by ruling out silly numbers.</li>
+  </ul>
+</section>
+
+<section id="levels">
+  <h2>3. Levelling up</h2>
+  <p>Each kid follows a mission map. A mission is a set of facts plus a speed. Finishing with at least 80% right unlocks the next one. Each mission awards 1 to 3 stars, and stars raise her rank (Cadet, Pilot, Captain, Commander).</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Mission</th><th>Facts</th><th>Speed</th></tr></thead>
+    <tbody>
+      <tr><td>1 Launch pad</td><td>×1, ×2</td><td>Slow</td></tr>
+      <tr><td>2 Moon run</td><td>×3, with ×1 and ×2 mixed in</td><td>Slow</td></tr>
+      <tr><td>3 Red planet</td><td>×4</td><td>Medium</td></tr>
+      <tr><td>4 Asteroid belt</td><td>×5</td><td>Medium</td></tr>
+      <tr><td>5 Gas giant</td><td>×6</td><td>Medium</td></tr>
+      <tr><td>6 Ice rings</td><td>×7</td><td>Medium</td></tr>
+      <tr><td>7 Deep space</td><td>Everything up through 7 × 7</td><td>Fast</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Under the map, the game tracks every single fact: how often she gets it right and how fast. Weak facts show up more often. A grown-up can see the grid at a glance.</p>
+  <figure>
+    <svg viewBox="0 0 800 330" role="img" aria-label="Mock-up of pilot select and grown-up settings">
+      <rect width="800" height="330" fill="#0c1024"/>
+      <g font-family="Chakra Petch,sans-serif" font-weight="700">
+        <text x="30" y="40" fill="#ffb84d" font-size="20">WHO IS FLYING?</text>
+        <g><rect x="30" y="60" width="150" height="110" rx="12" fill="#1e2648" stroke="#4fd6c4" stroke-width="3"/><path d="M105 80l18 34h-36z" fill="#ffb84d"/><text x="105" y="140" fill="#eef0fb" font-size="18" text-anchor="middle">Pilot A</text><text x="105" y="160" fill="#a9b1d6" font-size="13" text-anchor="middle">Pilot · 11 stars</text></g>
+        <g><rect x="195" y="60" width="150" height="110" rx="12" fill="#1e2648" stroke="#34407a" stroke-width="2"/><path d="M270 80l18 34h-36z" fill="#4fd6c4"/><text x="270" y="140" fill="#eef0fb" font-size="18" text-anchor="middle">Pilot B</text><text x="270" y="160" fill="#a9b1d6" font-size="13" text-anchor="middle">Cadet · 2 stars</text></g>
+        <g><rect x="30" y="185" width="315" height="50" rx="12" fill="none" stroke="#34407a" stroke-width="2" stroke-dasharray="6 6"/><text x="187" y="217" fill="#a9b1d6" font-size="16" text-anchor="middle">+ Add a pilot</text></g>
+        <text x="30" y="290" fill="#a9b1d6" font-size="13">Grown-ups: hold the gear for 2 seconds</text>
+
+        <text x="420" y="40" fill="#ffb84d" font-size="20">GROWN-UP SETTINGS · PILOT A</text>
+        <text x="420" y="72" fill="#a9b1d6" font-size="13">TABLES IN PLAY</text>
+        <g font-size="15" text-anchor="middle">
+          <g fill="#4fd6c4"><rect x="420" y="82" width="36" height="30" rx="6"/><rect x="462" y="82" width="36" height="30" rx="6"/><rect x="504" y="82" width="36" height="30" rx="6"/><rect x="546" y="82" width="36" height="30" rx="6"/><rect x="588" y="82" width="36" height="30" rx="6"/><rect x="630" y="82" width="36" height="30" rx="6"/><rect x="672" y="82" width="36" height="30" rx="6"/></g>
+          <g fill="#0c1024"><text x="438" y="103">1</text><text x="480" y="103">2</text><text x="522" y="103">3</text><text x="564" y="103">4</text><text x="606" y="103">5</text><text x="648" y="103">6</text><text x="690" y="103">7</text></g>
+          <rect x="714" y="82" width="36" height="30" rx="6" fill="none" stroke="#34407a" stroke-width="2"/><text x="732" y="103" fill="#a9b1d6">8</text>
+        </g>
+        <text x="420" y="140" fill="#a9b1d6" font-size="13">SPEED</text>
+        <g font-size="14" text-anchor="middle"><rect x="420" y="150" width="80" height="30" rx="6" fill="none" stroke="#34407a" stroke-width="2"/><text x="460" y="170" fill="#a9b1d6">Slow</text><rect x="508" y="150" width="80" height="30" rx="6" fill="#ffb84d"/><text x="548" y="170" fill="#0c1024">Medium</text><rect x="596" y="150" width="80" height="30" rx="6" fill="none" stroke="#34407a" stroke-width="2"/><text x="636" y="170" fill="#a9b1d6">Fast</text></g>
+        <text x="420" y="208" fill="#a9b1d6" font-size="13">HOW SHE'S DOING (each square is one fact)</text>
+        <g>
+          <g fill="#4fd6c4"><rect x="420" y="218" width="22" height="22" rx="3"/><rect x="446" y="218" width="22" height="22" rx="3"/><rect x="472" y="218" width="22" height="22" rx="3"/><rect x="498" y="218" width="22" height="22" rx="3"/><rect x="524" y="218" width="22" height="22" rx="3"/><rect x="420" y="244" width="22" height="22" rx="3"/><rect x="446" y="244" width="22" height="22" rx="3"/><rect x="472" y="244" width="22" height="22" rx="3"/><rect x="420" y="270" width="22" height="22" rx="3"/><rect x="446" y="270" width="22" height="22" rx="3"/></g>
+          <g fill="#ffb84d"><rect x="550" y="218" width="22" height="22" rx="3"/><rect x="498" y="244" width="22" height="22" rx="3"/><rect x="524" y="244" width="22" height="22" rx="3"/><rect x="472" y="270" width="22" height="22" rx="3"/></g>
+          <g fill="#ff7a6b"><rect x="576" y="218" width="22" height="22" rx="3"/><rect x="550" y="244" width="22" height="22" rx="3"/><rect x="498" y="270" width="22" height="22" rx="3"/></g>
+          <g fill="#34407a"><rect x="576" y="244" width="22" height="22" rx="3"/><rect x="524" y="270" width="22" height="22" rx="3"/><rect x="550" y="270" width="22" height="22" rx="3"/><rect x="576" y="270" width="22" height="22" rx="3"/></g>
+          <g font-size="12" fill="#a9b1d6"><rect x="630" y="222" width="12" height="12" rx="2" fill="#4fd6c4"/><text x="648" y="233">Knows it fast</text><rect x="630" y="244" width="12" height="12" rx="2" fill="#ffb84d"/><text x="648" y="255">Right but slow</text><rect x="630" y="266" width="12" height="12" rx="2" fill="#ff7a6b"/><text x="648" y="277">Often missed</text><rect x="630" y="288" width="12" height="12" rx="2" fill="#34407a"/><text x="648" y="299">Not seen yet</text></g>
+        </g>
+      </g>
+    </svg>
+    <figcaption>Left: each kid picks their pilot. Right: per-kid settings and a progress grid, behind a hold-to-open gear so kids don't wander in.</figcaption>
+  </figure>
+  <h3>What a grown-up can adjust per kid</h3>
+  <ul>
+    <li>Which tables are in play (default 1 through 7; up to 12 available).</li>
+    <li>Speed: slow, medium or fast.</li>
+    <li>Skip the mission map and practise a chosen set of tables freely.</li>
+    <li>Sound on or off. Reset progress.</li>
+  </ul>
+</section>
+
+<section id="stages">
+  <h2>4. Stages</h2>
+  <div class="grid">
+    <div class="card"><span class="tag">Stage 1 · first 2 hours</span><b>Playable Asteroid Blast</b><span>Multiplication through 7, shields, waves, score, sounds, game over and results screen. Live on GitHub Pages and checked at phone, tablet and desktop sizes.</span></div>
+    <div class="card"><span class="tag">Stage 2 · by hour 4</span><b>Pilots and levels</b><span>Kid profiles, mission map, stars and ranks, per-fact tracking, grown-up settings. This is the cut your kids test.</span></div>
+    <div class="card"><span class="tag later">Stage 3 · after your feedback</span><b>More to do</b><span>Addition and subtraction. A second scene (type the answer on a keypad to fuel a rocket, so she recalls rather than recognises). Then a fly-through-the-gate cave scene, and a "one change" logic puzzle: build a chain of creatures where each neighbour differs in exactly one feature (shape, eyes, arms or colour), with our own creatures and art.</span></div>
+  </div>
+  <p>Each stage ends with something playable at the same link. I'll track the work as GitHub issues and stop for your feedback after Stage 2.</p>
+</section>
+
+<section id="how">
+  <h2>5. How I'll build it</h2>
+  <ul>
+    <li><b>Plain web page.</b> HTML, CSS and JavaScript with a canvas for the action. No framework and no build step, so it loads fast, is simple to host, and is easy to change later.</li>
+    <li><b>Art and sound made in code.</b> Ships, rocks and explosions are drawn shapes; sounds are synthesised beeps and booms. No downloaded assets, so nothing to license.</li>
+    <li><b>Progress saved on the device.</b> Profiles live in the browser's storage on each tablet or phone. Nothing is sent anywhere, and no kid names go in the repo. Trade-off: progress does not follow a kid from one device to another.</li>
+    <li><b>Tested math.</b> Fact picking, decoys, scoring and unlock rules sit in a separate module with automated tests. I'll also play it in a real browser at phone and tablet sizes before handing it over.</li>
+    <li><b>Add to home screen.</b> It will open full-screen from an icon like an app.</li>
+  </ul>
+</section>
+
+<section id="open">
+  <h2>6. Calls I made that you can overrule</h2>
+  <p>Comment on any of these. If you say nothing, I'll go with what's written.</p>
+  <div class="q"><b>Name.</b> "Math Fasters", from your folder name. Easy to change.</div>
+  <div class="q"><b>Game over is real but kind.</b> You chose full arcade. After game over she sees her score, the facts she missed with their answers, and a big "Try again" button. Stars and fact progress are kept even when a run ends early.</div>
+  <div class="q"><b>Zero times tables are left out</b> and ×1 appears only in the first missions, since they teach little.</div>
+  <div class="q"><b>Mission order</b> is ×1/×2, 3, 4, 5, 6, 7, then mixed. If she already knows the early tables cold, you can unlock any mission from grown-up settings.</div>
+  <div class="q"><b>Both ways round.</b> 3 × 7 and 7 × 3 are tracked as separate facts and both get asked.</div>
+</section>
+
+</main>
+</body>
+</html>
