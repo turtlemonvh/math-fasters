@@ -7,18 +7,17 @@ const FONT = '"Chakra Petch","Trebuchet MS",sans-serif';
 const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
 /**
- * opts: { mission, pools, stats, kidSpeed, shipColor, onHud(state), onFact(text, mood), onSave(), onEnd(result) }
+ * opts: { mission, session (from logic.createSession), kidSpeed, shipColor, onHud(state), onFact(text, mood), onSave(), onEnd(result) }
  * Returns { pause(), resume(), stop() }.
  */
 export function createGame(canvas, opts) {
   const ctx = canvas.getContext('2d');
-  const { mission, pools, stats } = opts;
-  let W = 0, H = 0;
-  const g = { wave: 1, q: 0, score: 0, streak: 0, shields: L.MAX_SHIELDS, asked: 0, right: 0, misses: [] };
+  const { mission, session } = opts;
+  const g = session.g;
+  let W = 0, H = 0, dead = false, completed = false;
   let state = 'banner', timer = 1.6, banner = 'Wave 1';
   let clock = 0, p = 0, dur = 9, cur = null;
   let rocks = [], particles = [], popups = [], laser = null, shake = 0, shipAngle = 0;
-  let pending = [], recent = [];
   let paused = false, stopped = false, raf = 0, last = 0;
   const stars = Array.from({ length: 70 }, () => ({ x: Math.random(), y: Math.random(), z: 0.3 + Math.random() * 0.7 }));
 
@@ -39,28 +38,23 @@ export function createGame(canvas, opts) {
   const hud = () => opts.onHud({ ...g, mult: L.multFor(g.streak) });
 
   function nextQuestion() {
-    if (g.q >= L.PER_WAVE) {
-      if (g.wave >= L.WAVES) return finish(true);
-      g.wave++; g.q = 0;
-      g.shields = Math.min(L.MAX_SHIELDS, g.shields + 1);
+    const step = session.advance();
+    if (step.type === 'done') return finish(true);
+    if (step.type === 'wave') {
       state = 'banner'; timer = 1.8; banner = `Wave ${g.wave}`;
       rocks = []; sfx.wave(); opts.onFact('Shield restored!', 'good'); hud();
       return;
     }
-    pending.forEach(x => x.due--);
-    const i = pending.findIndex(x => x.due <= 0);
-    const fact = i >= 0 ? pending.splice(i, 1)[0].fact : L.pickFact(pools, stats, recent);
-    const k = L.key(fact.a, fact.b);
-    recent = [...recent, k].slice(-3);
-    cur = { a: fact.a, b: fact.b, ans: fact.a * fact.b, key: k, start: clock };
-    rocks = L.makeChoices(fact.a, fact.b).map((v, lane) => ({
+    const fact = step.fact;
+    cur = { fact, ans: L.answerOf(fact), text: L.factText(fact), start: clock };
+    rocks = L.makeChoices(fact).map((v, lane) => ({
       v, lane, po: Math.random() * 0.06, phase: Math.random() * 6, rot: Math.random() * 6,
       spin: (Math.random() - 0.5) * 0.8, shape: Array.from({ length: 10 }, () => 0.84 + Math.random() * 0.22),
       alpha: 1, mode: 'fall',
     }));
     p = 0; dur = L.fallSeconds(mission.speed, opts.kidSpeed, g.wave);
-    g.asked++; state = 'fall';
-    opts.onFact(`${cur.a} × ${cur.b} = ?`, '');
+    state = 'fall';
+    opts.onFact(`${cur.text} = ?`, '');
     hud();
   }
 
@@ -76,10 +70,7 @@ export function createGame(canvas, opts) {
     if (state !== 'fall' || !rock || rock.mode !== 'fall') return;
     if (rock.v !== cur.ans) return miss(rock);
     const ms = (clock - cur.start) * 1000;
-    L.recordAnswer(stats, cur.key, true, ms);
-    g.streak++; g.right++;
-    const pts = L.scoreFor(1 - p, g.streak);
-    g.score += pts;
+    const pts = session.correct(cur.fact, ms, 1 - p);
     const x = rockX(rock), y = rockY(rock);
     laser = { x, y, t: 0 };
     shipAngle = Math.atan2(x - W / 2, (H - shipZone() / 2) - y);
@@ -89,30 +80,27 @@ export function createGame(canvas, opts) {
     rocks.forEach(r => { if (r !== rock) r.mode = 'away'; });
     sfx.laser(); sfx.boom();
     state = 'hit'; timer = 0.6;
-    opts.onFact(`${cur.a} × ${cur.b} = ${cur.ans}`, 'good');
+    opts.onFact(`${cur.text} = ${cur.ans}`, 'good');
     hud(); opts.onSave();
   }
 
   // rock is the wrong asteroid tapped, or null when the right one reached the line.
   function miss(rock) {
-    L.recordAnswer(stats, cur.key, false, 0);
-    g.streak = 0; g.shields--;
-    g.misses.push({ a: cur.a, b: cur.b, ans: cur.ans });
-    pending.push({ fact: { a: cur.a, b: cur.b }, due: 2 + (Math.random() < 0.5 ? 1 : 0) });
+    dead = session.miss(cur.fact);
     rocks.forEach(r => { r.mode = r.v === cur.ans ? 'answer' : r === rock ? 'bad' : 'dim'; });
     shake = reduceMotion ? 0 : 0.45;
     sfx.wrong();
     state = 'reveal'; timer = 2.1;
-    opts.onFact(`${cur.a} × ${cur.b} = ${cur.ans}`, 'bad');
+    opts.onFact(`${cur.text} = ${cur.ans}`, 'bad');
     hud(); opts.onSave();
   }
 
-  function finish(completed) {
+  function finish(done) {
+    completed = done;
     state = 'over'; timer = completed ? 0.9 : 1.4;
     banner = completed ? 'Mission complete!' : 'Game over';
     rocks = [];
     if (completed) sfx.win(); else { sfx.over(); burst(W / 2, H - shipZone() / 2, C.coral, 40); }
-    g.completed = completed;
     hud();
   }
 
@@ -138,12 +126,9 @@ export function createGame(canvas, opts) {
     timer -= dt;
     if (timer > 0) return;
     if (state === 'banner') nextQuestion();
-    else if (state === 'hit') { g.q++; nextQuestion(); }
-    else if (state === 'reveal') { if (g.shields <= 0) finish(false); else { g.q++; nextQuestion(); } }
-    else if (state === 'over') {
-      stopped = true;
-      opts.onEnd({ completed: g.completed, score: g.score, asked: g.asked, right: g.right, misses: g.misses });
-    }
+    else if (state === 'hit') nextQuestion();
+    else if (state === 'reveal') { if (dead) finish(false); else nextQuestion(); }
+    else if (state === 'over') { stopped = true; opts.onEnd(session.result(completed)); }
   }
 
   function drawRock(r) {
@@ -184,7 +169,7 @@ export function createGame(canvas, opts) {
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(laser ? shipAngle : 0);
-    if (state !== 'over' || g.completed) {
+    if (state !== 'over' || completed) {
       ctx.fillStyle = C.coral;
       ctx.beginPath(); ctx.moveTo(-s * 0.45, s * 0.8); ctx.lineTo(0, s * (1.2 + Math.random() * 0.5)); ctx.lineTo(s * 0.45, s * 0.8); ctx.fill();
       ctx.fillStyle = opts.shipColor || C.amber;
@@ -233,7 +218,7 @@ export function createGame(canvas, opts) {
     }
     ctx.globalAlpha = 1;
     if (state === 'banner' || state === 'over') {
-      ctx.fillStyle = state === 'over' && !g.completed ? C.coral : C.amber;
+      ctx.fillStyle = state === 'over' && !completed ? C.coral : C.amber;
       ctx.font = `700 ${Math.round(Math.min(W * 0.1, 64))}px ${FONT}`;
       ctx.fillText(banner, W / 2, H * 0.38);
       if (state === 'banner') {

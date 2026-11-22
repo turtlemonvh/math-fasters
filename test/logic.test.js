@@ -32,7 +32,7 @@ test('a single table still gives a usable set of facts', () => {
 
 test('choices: four unique positive numbers including the answer', () => {
   for (let a = 1; a <= 12; a++) for (let b = 1; b <= 12; b++) for (let i = 0; i < 20; i++) {
-    const c = L.makeChoices(a, b);
+    const c = L.makeChoices({ a, b, op: 'mul' });
     assert.equal(c.length, 4);
     assert.equal(new Set(c).size, 4);
     assert.ok(c.includes(a * b));
@@ -41,7 +41,7 @@ test('choices: four unique positive numbers including the answer', () => {
 });
 
 test('missed facts are picked more often than known ones', () => {
-  const pools = { focus: [{ a: 6, b: 7 }, { a: 6, b: 2 }], review: [] };
+  const pools = { focus: [{ a: 6, b: 7, op: 'mul' }, { a: 6, b: 2, op: 'mul' }], review: [] };
   const stats = {};
   for (let i = 0; i < 4; i++) L.recordAnswer(stats, '6x2', true, 1500);
   L.recordAnswer(stats, '6x7', false, 0);
@@ -83,4 +83,71 @@ test('score, stars, rank, speed, unlock', () => {
   assert.equal(L.isUnlocked(m, 1, { 't1-2': { stars: 1 } }, 0), true);
   assert.equal(L.isUnlocked(m, 4, {}, 4), true);
   assert.equal(L.isUnlocked(m, 5, {}, 4), false);
+});
+
+test('addition and subtraction: missions, facts and choices', () => {
+  for (const op of ['add', 'sub']) {
+    const m = L.buildMissions([], op);
+    assert.equal(m.length, 6);
+    assert.equal(new Set(m.map(x => x.id)).size, 6);
+    for (const mission of m) {
+      const { focus, review } = L.missionPools(mission, []);
+      assert.ok(focus.length >= 10);
+      for (const f of [...focus, ...review]) {
+        const ans = L.answerOf(f);
+        assert.ok(ans >= 1 && ans <= 20, L.factText(f));
+        const c = L.makeChoices(f);
+        assert.equal(new Set(c).size, 4);
+        assert.ok(c.includes(ans) && c.every(v => v > 0));
+      }
+    }
+  }
+  assert.equal(L.fkey({ a: 6, b: 7 }), '6x7');
+  assert.equal(L.fkey({ a: 13, b: 6, op: 'sub' }), '13-6');
+  assert.equal(L.answerOf({ a: 13, b: 6, op: 'sub' }), 7);
+  assert.equal(L.factText({ a: 6, b: 7, op: 'add' }), '6 + 7');
+  assert.equal(L.gridFor('sub', []).rows[2].facts[3].a, 7);
+});
+
+test('session: three waves of ten, a miss comes back, shields restore and run out', () => {
+  const pools = L.missionPools(L.buildMissions([1, 2, 3, 4, 5, 6, 7])[2], [1, 2, 3, 4, 5, 6, 7]);
+  let s = L.createSession({ pools, stats: {} });
+  let facts = 0, waves = 0, step, missed = null, cameBack = false;
+  while ((step = s.advance()).type !== 'done') {
+    if (step.type === 'wave') { waves++; continue; }
+    facts++;
+    if (missed && L.fkey(step.fact) === L.fkey(missed)) cameBack = true;
+    if (facts === 2) { missed = step.fact; assert.equal(s.miss(step.fact), false); }
+    else s.correct(step.fact, 1000, 0.5);
+  }
+  assert.equal(facts, 30);
+  assert.equal(waves, 2);
+  assert.ok(cameBack);
+  assert.equal(s.g.shields, 3);
+  assert.equal(s.result(true).right, 29);
+  s = L.createSession({ pools, stats: {} });
+  assert.equal(s.miss(s.advance().fact), false);
+  assert.equal(s.miss(s.advance().fact), false);
+  assert.equal(s.miss(s.advance().fact), true);
+});
+
+test('division follows the tables in play', () => {
+  const T = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  const m = L.buildMissions(T, 'div');
+  assert.equal(m[0].id, 'div1-2');
+  assert.equal(m.at(-1).id, 'divmix');
+  assert.equal(m.length, 12);
+  for (const mission of m) {
+    for (const f of L.missionPools(mission, T).focus) {
+      const ans = L.answerOf(f);
+      assert.ok(Number.isInteger(ans) && ans >= 1 && ans <= 12, L.factText(f));
+      assert.ok(mission.focus.includes(f.b));
+      const c = L.makeChoices(f);
+      assert.ok(new Set(c).size === 4 && c.includes(ans) && c.every(v => v > 0));
+    }
+  }
+  const seven = L.missionPools(L.buildMissions([1, 2, 3, 4, 5, 6, 7], 'div')[5], [1, 2, 3, 4, 5, 6, 7]).focus;
+  assert.deepEqual(seven.map(L.factText), ['14 ÷ 7', '21 ÷ 7', '28 ÷ 7', '35 ÷ 7', '42 ÷ 7', '49 ÷ 7']);
+  assert.equal(L.fkey({ a: 42, b: 7, op: 'div' }), '42/7');
+  assert.equal(L.gridFor('div', [6, 7]).rows[1].facts[2].a, 21);
 });

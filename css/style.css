@@ -113,3 +113,27 @@ input[type=text], input[type=password] { font: 700 1.3rem var(--display); color:
 .legend i { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: -2px; margin-right: 6px; }
 
 @media (prefers-reduced-motion: reduce) { .btn:active { transform: none; } }
+
+/* map choices */
+.chips.center { justify-content: center; width: min(100%, 680px); }
+.chips:empty { display: none; }
+.chip small { display: block; font: 400 .78rem var(--body); opacity: .8; }
+.mission.free { border-style: dashed; }
+.mission.free .num { color: var(--amber); }
+.btn:disabled { opacity: .45; cursor: default; }
+.settings .chips + .chips { margin-top: 4px; }
+.factgrid { margin-bottom: 10px; }
+
+/* Fuel-Up: keypad under the scene, or beside it on wide screens */
+.keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; padding: 10px 12px calc(12px + env(safe-area-inset-bottom)); background: var(--panel); }
+.key { font: 700 1.7rem var(--display); color: var(--ink); background: var(--deep); border: 2px solid var(--line); border-radius: 12px; min-height: 54px; cursor: pointer; touch-action: none; }
+.key:active { background: var(--amber); color: var(--deep); border-color: var(--amber); }
+.key.fn { color: var(--muted); }
+#s-play.fuel .console { padding-bottom: 10px; border-bottom: 0; }
+@media (min-aspect-ratio: 5/4) {
+  #s-play.fuel.active { display: grid; align-items: stretch; grid-template: "hud hud" auto "stage keypad" 1fr "console keypad" auto / 1fr minmax(240px, 34%); }
+  #s-play.fuel .hud { grid-area: hud; }
+  #s-play.fuel .stage { grid-area: stage; }
+  #s-play.fuel .console { grid-area: console; padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+  #s-play.fuel .keypad { grid-area: keypad; height: 100%; grid-auto-rows: 1fr; border-left: 2px solid var(--line); }
+}

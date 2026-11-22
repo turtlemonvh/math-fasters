@@ -48,6 +48,8 @@
         <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.6 7.6 0 0 0-1.7-1L15 3.5h-4l-.4 2.5a7.6 7.6 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1c.5.4 1.1.8 1.7 1l.4 2.5h4l.4-2.5c.6-.2 1.2-.6 1.7-1l2.4 1 2-3.4-2.2-1.6zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>
       </button>
     </header>
+    <div id="map-ops" class="chips center"></div>
+    <div id="map-scenes" class="chips center"></div>
     <h2>Choose a mission</h2>
     <div id="mission-list" class="mission-list"></div>
     <p class="hint">Grown-ups: tap the gear for settings.</p>
@@ -63,6 +65,7 @@
     </div>
     <div class="stage"><canvas id="game"></canvas></div>
     <div id="console" class="console" aria-live="polite"></div>
+    <div id="keypad" class="keypad" hidden></div>
     <div id="pause" class="overlay" hidden>
       <div class="panel center">
         <h2>Paused</h2>
@@ -74,6 +77,18 @@
 
   <section id="s-result" class="screen">
     <div id="result" class="panel center result"></div>
+  </section>
+
+  <section id="s-free" class="screen">
+    <div class="panel center">
+      <h2 id="free-title">Free practice</h2>
+      <p class="muted">Pick the numbers you want to practise. No stars here, just practice.</p>
+      <div id="free-nums" class="chips center"></div>
+      <div class="row">
+        <button class="btn ghost" data-act="to-map">Back</button>
+        <button id="free-go" class="btn primary" data-act="play-mission" data-id="free">Start</button>
+      </div>
+    </div>
   </section>
 
   <section id="s-gate" class="screen">
