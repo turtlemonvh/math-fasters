@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Math Fasters Look and Sound Ideas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+:root {
+  color-scheme: dark;
+  --space: #141a33; --deep: #0c1024; --panel: #1e2648; --line: #34407a;
+  --ink: #eef0fb; --muted: #a9b1d6; --amber: #ffb84d; --teal: #4fd6c4; --coral: #ff7a6b;
+  --display: "Chakra Petch", "Trebuchet MS", sans-serif;
+  --body: "Atkinson Hyperlegible", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html { background: var(--space); }
+body { margin: 0; background: var(--space); color: var(--ink); font: 17px/1.5 var(--body); overflow-x: hidden; }
+main { max-width: 900px; margin: 0 auto; padding: 28px 16px 64px; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.15; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(1.9rem, 7vw, 3rem); letter-spacing: .03em; }
+h1 span { color: var(--amber); }
+h2 { font-size: 1.6rem; margin: 56px 0 6px; padding-top: 20px; border-top: 2px solid var(--line); }
+h2 b { color: var(--amber); margin-right: 8px; }
+h3 { font-size: 1.1rem; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+p { margin: 8px 0; max-width: 62ch; }
+.muted, .opt p { color: var(--muted); }
+.opt p { font-size: .97rem; margin: 10px 0 0; }
+.code { font: 700 .95rem var(--display); background: var(--amber); color: var(--deep); border-radius: 8px; padding: 3px 9px; letter-spacing: .04em; }
+.code.now { background: var(--line); color: var(--ink); }
+.tag { font: 700 .72rem var(--display); color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 2px 7px; text-transform: uppercase; letter-spacing: .08em; }
+.how { background: var(--panel); border: 2px solid var(--line); border-left: 6px solid var(--teal); border-radius: 12px; padding: 12px 16px; margin: 18px 0 0; }
+.how p { margin: 0; }
+.row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 16px; }
+.row.wide { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.opt { background: var(--panel); border: 2px solid var(--line); border-radius: 14px; padding: 14px; min-width: 0; }
+.opt > canvas, .opt > svg { margin-top: 12px; }
+canvas { display: block; width: 100%; max-width: 100%; border-radius: 10px; background: var(--deep); }
+.char { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; margin-top: 16px; }
+.faces { flex: 1 1 320px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; min-width: 0; }
+.faces figure { margin: 0; background: var(--deep); border-radius: 10px; padding: 6px 4px 8px; text-align: center; }
+.faces svg { display: block; width: 100%; max-width: 150px; height: auto; margin: 0 auto; }
+.faces figcaption { font: 700 .82rem var(--display); color: var(--muted); letter-spacing: .04em; }
+.char .txt { flex: 1 1 220px; min-width: 0; }
+.cheer svg { animation: hop 0.9s ease-in-out infinite; }
+@keyframes hop { 0%, 100% { transform: translateY(3px); } 50% { transform: translateY(-3px); } }
+.btns { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.btn { font: 700 1rem var(--display); color: var(--ink); background: var(--deep); border: 2px solid var(--line); border-radius: 12px; padding: 10px 16px; min-height: 48px; cursor: pointer; }
+.btn:hover { border-color: var(--teal); }
+.btn:active { transform: scale(.97); }
+.btn.primary { background: var(--amber); border-color: var(--amber); color: var(--deep); }
+.btn[aria-pressed="true"] { background: var(--teal); border-color: var(--teal); color: var(--deep); }
+:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+#sndmsg { min-height: 1.5em; color: var(--teal); font-weight: 700; margin-top: 14px; }
+.grid-now { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+.grid-now div { background: var(--deep); border: 2px solid var(--line); border-radius: 10px; padding: 10px 6px; text-align: center; font: 700 .95rem var(--display); }
+.grid-now small { display: block; color: var(--amber); font-size: .8rem; letter-spacing: 2px; }
+.grid-now .lock { opacity: .45; }
+.map { display: block; width: 100%; height: auto; background: var(--deep); border-radius: 10px; }
+.pulse { animation: pulse 1.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes pulse { 0%, 100% { transform: scale(1); opacity: .9; } 50% { transform: scale(1.18); opacity: .35; } }
+.tablewrap { overflow-x: auto; margin-top: 16px; border: 2px solid var(--line); border-radius: 14px; }
+table { border-collapse: collapse; width: 100%; background: var(--panel); }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font: 700 .85rem var(--display); color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+td:first-child { font: 700 1rem var(--display); color: var(--amber); white-space: nowrap; }
+.S, .M, .L { font: 700 .9rem var(--display); white-space: nowrap; }
+.S { color: var(--teal); } .M { color: var(--amber); } .L { color: var(--coral); }
+@media (prefers-reduced-motion: reduce) { .cheer svg, .pulse { animation: none; } }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>Math <span>Fasters</span></h1>
+  <p style="font-size:1.15rem">Look and sound ideas. Pick what your kids would like.</p>
+  <p class="muted">The game works today with a plain look. Everything below is optional polish. Nothing here is built into the game yet. Anything we add will come with a switch in grown-up settings, so the current plain look stays available for older tablets.</p>
+  <div class="how"><p><strong>How to answer:</strong> every idea has a code like <span class="code">2B</span>. Reply with the codes you want, for example "go with 1A, 2B and 3B". Ideas marked <span class="code now">now</span> show how the game looks or sounds today.</p></div>
+</header>
+
+<section>
+  <h2><b>1</b>Characters</h2>
+  <p>A friendly face that reacts to each answer. Pick one. All three are original designs made for this game.</p>
+  <div class="opt char">
+    <div class="faces" data-char="robot"></div>
+    <div class="txt"><h3><span class="code">1A</span>Tock the co-pilot robot</h3>
+    <p>A small hovering robot. Its screen face and antenna light show how it feels.</p>
+    <p>Shows up in the corner of the play screen and on the results screen.</p></div>
+  </div>
+  <div class="opt char">
+    <div class="faces" data-char="blob"></div>
+    <div class="txt"><h3><span class="code">1B</span>Zuzu the space pet</h3>
+    <p>A squishy alien pet with glowing feelers. It bounces when you get one right.</p>
+    <p>Rides along on the play screen and waits at the next planet on the mission map.</p></div>
+  </div>
+  <div class="opt char">
+    <div class="faces" data-char="kid"></div>
+    <div class="txt"><h3><span class="code">1C</span>Cadet, the kid astronaut</h3>
+    <p>A kid in a space suit. Each pilot could pick their own suit color, hair and skin.</p>
+    <p>Shows up on the pilot picker, the results screen and the mission map.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2><b>2</b>Space and asteroids</h2>
+  <p>Three asteroid looks. The numbers stay big, white and outlined in all of them.</p>
+  <div class="row">
+    <div class="opt"><h3><span class="code now">2A</span>Flat rocks <span class="tag">now</span></h3><canvas id="c2a"></canvas><p>Simple grey shapes. Clear, but plain.</p></div>
+    <div class="opt"><h3><span class="code">2B</span>Rocky asteroids</h3><canvas id="c2b"></canvas><p>Lit from one side, with craters and a bright edge. A dark patch sits behind each number.</p></div>
+    <div class="opt"><h3><span class="code">2C</span>Glowing crystals</h3><canvas id="c2c"></canvas><p>Icy crystals with a soft glow. Could also be used only for bonus rounds.</p></div>
+  </div>
+  <p style="margin-top:28px">Two backgrounds. The asteroids are the same in both so you can compare.</p>
+  <div class="row wide">
+    <div class="opt"><h3><span class="code now">2D</span>Plain starfield <span class="tag">now</span></h3><canvas id="c2d"></canvas><p>Dark sky with still stars.</p></div>
+    <div class="opt"><h3><span class="code">2E</span>Deep space</h3><canvas id="c2e"></canvas><p>Soft color clouds, stars that drift at three speeds, and a far-off planet. Kept dim so numbers stay easy to read.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2><b>3</b>Sounds</h2>
+  <p>Tap a button to hear each sound. Turn your volume up a little first. No sound plays until you tap.</p>
+  <div class="row wide">
+    <div class="opt"><h3><span class="code now">3A</span>Simple beeps <span class="tag">now</span></h3>
+      <div class="btns"><button class="btn" data-snd="oldLaser">Laser</button><button class="btn" data-snd="oldBoom">Explosion</button><button class="btn" data-snd="oldWrong">Wrong answer</button></div>
+      <p>Plain buzzes and a burst of hiss.</p></div>
+    <div class="opt"><h3><span class="code">3B</span>Richer sounds</h3>
+      <div class="btns"><button class="btn" data-snd="laser">Laser</button><button class="btn" data-snd="boom">Explosion</button><button class="btn" data-snd="chime">Right answer</button><button class="btn" data-snd="bonk">Wrong answer</button><button class="btn" data-snd="sparkle">Shield back</button><button class="btn" data-snd="fanfare">Level complete</button></div>
+      <p>Fuller laser, a boom with a low rumble, a bright chime, and a gentle "bonk" for mistakes.</p></div>
+    <div class="opt"><h3><span class="code">3C</span>Background tune</h3>
+      <div class="btns"><button class="btn primary" id="tune" aria-pressed="false">Start tune</button></div>
+      <p>A short looping tune that plays quietly under the game. It would get its own on/off switch in Settings.</p></div>
+  </div>
+  <p id="sndmsg" role="status" aria-live="polite"></p>
+</section>
+
+<section>
+  <h2><b>4</b>Extra juice</h2>
+  <p>Small touches that make right answers feel great.</p>
+  <div class="row wide">
+    <div class="opt"><h3><span class="code">4A</span>Streak flames</h3><canvas id="c4a"></canvas><p>A meter fills as you get answers right in a row. The flames grow and a score bonus appears. One miss resets it.</p></div>
+    <div class="opt"><h3><span class="code">4C</span>Chunky explosions</h3><canvas id="c4c"></canvas><p>Left is today. Right adds a flash, a ring, and rock chunks that spin away.</p></div>
+  </div>
+  <div class="row wide">
+    <div class="opt"><h3><span class="code now">now</span>Mission list today</h3>
+      <div class="grid-now"><div>&times;2<small>&#9733;&#9733;&#9733;</small></div><div>&times;3<small>&#9733;&#9733;&#9734;</small></div><div>&times;4<small>&#9734;&#9734;&#9734;</small></div><div class="lock">&times;5<small>&#9734;&#9734;&#9734;</small></div><div class="lock">&times;6<small>&#9734;&#9734;&#9734;</small></div><div class="lock">&times;7<small>&#9734;&#9734;&#9734;</small></div></div>
+      <p>A grid of buttons. Simplified here.</p></div>
+    <div class="opt"><h3><span class="code">4B</span>Star-chart mission map</h3><div id="map"></div><p>Each mission is a planet on a path. Finished planets show their stars. The ship sits on the next one. Locked planets are grey.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2><b>5</b>What each costs</h2>
+  <p>Rough effort to build each idea into the real game. Small is about an evening. Medium is a few sessions. Large is a bigger project.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Code</th><th>Idea</th><th>Effort</th></tr></thead>
+    <tbody>
+      <tr><td>1A</td><td>Tock the robot, three faces, on play and results screens</td><td><span class="M">Medium</span></td></tr>
+      <tr><td>1B</td><td>Zuzu the space pet, three faces, on play screen and map</td><td><span class="M">Medium</span></td></tr>
+      <tr><td>1C</td><td>Cadet the astronaut. Large if each pilot can change the look</td><td><span class="M">Medium</span> to <span class="L">Large</span></td></tr>
+      <tr><td>2B</td><td>Rocky asteroids</td><td><span class="S">Small</span></td></tr>
+      <tr><td>2C</td><td>Glowing crystal asteroids</td><td><span class="S">Small</span></td></tr>
+      <tr><td>2E</td><td>Deep space background</td><td><span class="M">Medium</span></td></tr>
+      <tr><td>3B</td><td>Richer sound set</td><td><span class="S">Small</span></td></tr>
+      <tr><td>3C</td><td>Background tune with its own on/off switch</td><td><span class="M">Medium</span></td></tr>
+      <tr><td>4A</td><td>Streak flames and combo meter</td><td><span class="M">Medium</span></td></tr>
+      <tr><td>4B</td><td>Star-chart mission map</td><td><span class="L">Large</span></td></tr>
+      <tr><td>4C</td><td>Chunky explosions</td><td><span class="S">Small</span></td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted" style="margin-top:14px">2A, 2D and 3A are what the game has now, so they cost nothing.</p>
+</section>
+</main>
+
+<script>
+(function () {
+'use strict';
+var TAU = Math.PI * 2, FONT = '"Chakra Petch","Trebuchet MS",sans-serif';
+var C = { amber: '#ffb84d', teal: '#4fd6c4', coral: '#ff7a6b', ink: '#eef0fb', muted: '#a9b1d6', deep: '#0c1024', line: '#34407a', rock: '#5a628f', rockEdge: '#8b94c9' };
+var RM = false;
+try { RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+
+// ---------- shared helpers ----------
+var RND = [];
+(function () { var s = 20241; for (var i = 0; i < 512; i++) { s = (s * 1664525 + 1013904223) >>> 0; RND.push(s / 4294967296); } })();
+function rnd(i) { return RND[Math.abs(Math.round(i)) % 512]; }
+function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+function $(id) { return document.getElementById(id); }
+
+// Runs draw(ctx, W, H, t). Loops only while on screen. Reduced motion: one still frame at stillT.
+function demo(id, aspect, draw, stillT) {
+  var c = $(id); if (!c) return;
+  var ctx = c.getContext('2d'), W = 0, H = 0, vis = false, raf = 0, t0 = 0, t = 0;
+  c.style.aspectRatio = '1 / ' + aspect;
+  function size() {
+    var d = Math.min(window.devicePixelRatio || 1, 2);
+    W = Math.max(120, c.clientWidth); H = Math.round(W * aspect);
+    c.width = Math.round(W * d); c.height = Math.round(H * d);
+    ctx.setTransform(d, 0, 0, d, 0, 0);
+  }
+  function paint(time) {
+    if (c.clientWidth !== W) size();
+    try { ctx.save(); draw(ctx, W, H, time); ctx.restore(); } catch (e) { ctx.restore(); }
+  }
+  function frame(now) {
+    raf = 0; if (!vis) return;
+    if (!t0) t0 = now - t * 1000;
+    t = (now - t0) / 1000; paint(t);
+    raf = requestAnimationFrame(frame);
+  }
+  function still() { paint(stillT == null ? 1 : stillT); }
+  function show(on) {
+    vis = on;
+    if (RM) { if (on) still(); return; }
+    if (on && !raf) { t0 = 0; raf = requestAnimationFrame(frame); }
+  }
+  still();
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (es) { show(es[es.length - 1].isIntersecting); }, { rootMargin: '80px' }).observe(c);
+  } else show(true);
+  window.addEventListener('resize', function () { if (RM || !vis) still(); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { if (RM || !vis) still(); });
+}
+
+function circle(ctx, x, y, r) { ctx.beginPath(); ctx.arc(x, y, Math.max(0, r), 0, TAU); }
+function rockPath(ctx, x, y, r, seed, rot, n) {
+  n = n || 9; ctx.beginPath();
+  for (var i = 0; i < n; i++) {
+    var a = rot + i / n * TAU, rr = r * (0.8 + 0.28 * rnd(seed * 13 + i));
+    ctx[i ? 'lineTo' : 'moveTo'](x + Math.cos(a) * rr, y + Math.sin(a) * rr);
+  }
+  ctx.closePath();
+}
+function num(ctx, x, y, r, txt, plate) {
+  if (plate) {
+    var g = ctx.createRadialGradient(x, y, 0, x, y, r * 0.78);
+    g.addColorStop(0, 'rgba(8,10,26,.62)'); g.addColorStop(0.7, 'rgba(8,10,26,.4)'); g.addColorStop(1, 'rgba(8,10,26,0)');
+    ctx.fillStyle = g; circle(ctx, x, y, r * 0.78); ctx.fill();
+  }
+  ctx.font = '700 ' + Math.round(r * (txt.length > 2 ? 0.66 : 0.86)) + 'px ' + FONT;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+  ctx.lineWidth = Math.max(5, r * 0.17); ctx.strokeStyle = 'rgba(12,16,36,.88)';
+  ctx.strokeText(txt, x, y + 2); ctx.fillStyle = '#fff'; ctx.fillText(txt, x, y + 2);
+}
+var ROCK = {
+  flat: function (ctx, x, y, r, seed, rot, txt) {
+    rockPath(ctx, x, y, r, seed, rot); ctx.fillStyle = C.rock; ctx.fill();
+    ctx.lineWidth = 3; ctx.strokeStyle = C.rockEdge; ctx.stroke();
+    ctx.fillStyle = 'rgba(0,0,0,.16)';
+    [[-0.45, -0.4, 0.16], [0.5, 0.35, 0.12], [-0.3, 0.55, 0.09]].forEach(function (k) {
+      var a = Math.atan2(k[1], k[0]) + rot, d = Math.hypot(k[0], k[1]) * r;
+      circle(ctx, x + Math.cos(a) * d, y + Math.sin(a) * d, k[2] * r); ctx.fill();
+    });
+    if (txt) num(ctx, x, y, r, txt, false);
+  },
+  shaded: function (ctx, x, y, r, seed, rot, txt) {
+    ctx.save(); rockPath(ctx, x, y, r, seed, rot); ctx.clip();
+    var g = ctx.createRadialGradient(x - r * 0.4, y - r * 0.45, r * 0.1, x, y, r * 1.2);
+    g.addColorStop(0, '#d8c3a5'); g.addColorStop(0.5, '#8a7361'); g.addColorStop(1, '#33283a');
+    ctx.fillStyle = g; ctx.fillRect(x - r * 1.3, y - r * 1.3, r * 2.6, r * 2.6);
+    for (var k = 0; k < 4; k++) {
+      var a = rot + rnd(seed * 5 + k * 7) * TAU, d = r * (0.38 + 0.38 * rnd(seed + k * 3 + 1)), cr = r * (0.1 + 0.11 * rnd(seed + k + 2));
+      var cx = x + Math.cos(a) * d, cy = y + Math.sin(a) * d;
+      ctx.fillStyle = 'rgba(38,26,40,.6)'; circle(ctx, cx, cy, cr); ctx.fill();
+      ctx.lineWidth = Math.max(1.5, r * 0.045); ctx.strokeStyle = 'rgba(245,225,195,.6)';
+      ctx.beginPath(); ctx.arc(cx, cy, cr, -0.2, 1.8); ctx.stroke();
+    }
+    ctx.restore();
+    rockPath(ctx, x, y, r, seed, rot);
+    var lg = ctx.createLinearGradient(x - r, y - r, x + r, y + r);
+    lg.addColorStop(0, 'rgba(255,242,220,.95)'); lg.addColorStop(0.5, 'rgba(255,242,220,.12)'); lg.addColorStop(1, 'rgba(14,10,24,.85)');
+    ctx.lineWidth = Math.max(2.5, r * 0.09); ctx.lineJoin = 'round'; ctx.strokeStyle = lg; ctx.stroke();
+    if (txt) num(ctx, x, y, r, txt, true);
+  },
+  crystal: function (ctx, x, y, r, seed, rot, txt, t) {
+    var n = 7, pulse = 0.5 + 0.5 * Math.sin((t || 0) * 2.2 + seed), i, a, pts = [];
+    for (i = 0; i < n; i++) { a = rot + i / n * TAU; var rr = r * (0.8 + 0.28 * rnd(seed * 13 + i)); pts.push([x + Math.cos(a) * rr, y + Math.sin(a) * rr]); }
+    ctx.save(); ctx.shadowColor = 'rgba(110,225,255,.95)'; ctx.shadowBlur = r * (0.45 + 0.4 * pulse);
+    rockPath(ctx, x, y, r, seed, rot, n); ctx.fillStyle = '#2b6f9e'; ctx.fill(); ctx.restore();
+    var hx = x - r * 0.12, hy = y - r * 0.18;
+    for (i = 0; i < n; i++) {
+      var p = pts[i], q = pts[(i + 1) % n], mid = Math.atan2((p[1] + q[1]) / 2 - y, (p[0] + q[0]) / 2 - x);
+      var l = 0.5 + 0.5 * Math.cos(mid + 2.3);
+      ctx.fillStyle = 'hsl(' + Math.round(192 + (1 - l) * 28) + ',85%,' + Math.round(28 + l * 52) + '%)';
+      ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.closePath(); ctx.fill();
+      ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(225,250,255,.35)'; ctx.stroke();
+    }
+    rockPath(ctx, x, y, r, seed, rot, n); ctx.lineWidth = 2.5; ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(225,250,255,.95)'; ctx.stroke();
+    var s = pts[seed % n], k = r * 0.2 * (0.4 + pulse);
+    ctx.fillStyle = 'rgba(255,255,255,' + (0.5 + 0.5 * pulse) + ')';
+    ctx.beginPath(); ctx.moveTo(s[0], s[1] - k); ctx.lineTo(s[0] + k * 0.25, s[1] - k * 0.25); ctx.lineTo(s[0] + k, s[1]); ctx.lineTo(s[0] + k * 0.25, s[1] + k * 0.25);
+    ctx.lineTo(s[0], s[1] + k); ctx.lineTo(s[0] - k * 0.25, s[1] + k * 0.25); ctx.lineTo(s[0] - k, s[1]); ctx.lineTo(s[0] - k * 0.25, s[1] - k * 0.25); ctx.fill();
+    if (txt) num(ctx, x, y, r, txt, true);
+  }
+};
+function ship(ctx, x, y, s, flame) {
+  ctx.fillStyle = C.coral; ctx.beginPath(); ctx.moveTo(x - s * 0.45, y + s * 0.8); ctx.lineTo(x, y + s * (1.2 + flame)); ctx.lineTo(x + s * 0.45, y + s * 0.8); ctx.fill();
+  ctx.fillStyle = C.amber; ctx.beginPath(); ctx.moveTo(x, y - s); ctx.lineTo(x + s, y + s * 0.8); ctx.lineTo(x - s, y + s * 0.8); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = C.deep; circle(ctx, x, y + s * 0.1, s * 0.26); ctx.fill();
+}
+var BG = {
+  plain: function (ctx, W, H, t) {
+    ctx.fillStyle = C.deep; ctx.fillRect(0, 0, W, H);
+    for (var i = 0; i < 46; i++) {
+      ctx.globalAlpha = 0.35 + 0.4 * rnd(i + 90); ctx.fillStyle = '#fff';
+      ctx.fillRect(rnd(i) * W, rnd(i + 200) * H, 1.6, 1.6);
+    }
+    ctx.globalAlpha = 1;
+  },
+  deepSpace: function (ctx, W, H, t) {
+    var g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#0a0d22'); g.addColorStop(1, '#1b1440');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    var cols = ['150,95,255', '79,214,196', '255,122,107', '90,120,255', '200,90,220'], i;
+    ctx.globalCompositeOperation = 'lighter';
+    for (i = 0; i < 5; i++) {
+      var nx = W * (0.15 + 0.7 * rnd(i + 31)) + Math.sin(t * 0.12 + i * 2) * W * 0.05, ny = H * (0.15 + 0.6 * rnd(i + 47)) + Math.cos(t * 0.1 + i) * H * 0.04, nr = W * (0.28 + 0.2 * rnd(i + 5));
+      var ng = ctx.createRadialGradient(nx, ny, 0, nx, ny, nr);
+      ng.addColorStop(0, 'rgba(' + cols[i] + ',.2)'); ng.addColorStop(1, 'rgba(' + cols[i] + ',0)');
+      ctx.fillStyle = ng; ctx.fillRect(0, 0, W, H);
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    var px = W * 0.82, py = H * 0.24, pr = Math.min(W, H) * 0.13;
+    ctx.save(); circle(ctx, px, py, pr); ctx.clip();
+    var pg = ctx.createRadialGradient(px - pr * 0.4, py - pr * 0.4, pr * 0.1, px, py, pr * 1.1);
+    pg.addColorStop(0, '#f2b98a'); pg.addColorStop(0.6, '#b0608a'); pg.addColorStop(1, '#2a1d4a');
+    ctx.fillStyle = pg; ctx.fillRect(px - pr, py - pr, pr * 2, pr * 2);
+    ctx.fillStyle = 'rgba(255,235,210,.16)'; ctx.fillRect(px - pr, py - pr * 0.35, pr * 2, pr * 0.2); ctx.fillRect(px - pr, py + pr * 0.25, pr * 2, pr * 0.12);
+    ctx.restore();
+    ctx.strokeStyle = 'rgba(240,210,190,.5)'; ctx.lineWidth = Math.max(1.5, pr * 0.09);
+    ctx.beginPath(); ctx.ellipse(px, py, pr * 1.7, pr * 0.4, -0.35, 0.12, Math.PI - 0.12); ctx.stroke();
+    for (var L = 0; L < 3; L++) {
+      var sp = [3, 9, 22][L], sz = [1, 1.6, 2.3][L], n = [40, 24, 12][L];
+      ctx.fillStyle = '#fff'; ctx.globalAlpha = [0.4, 0.65, 0.95][L];
+      for (i = 0; i < n; i++) ctx.fillRect(rnd(i + L * 70) * W, (rnd(i + L * 70 + 300) * H + t * sp) % H, sz, sz);
+    }
+    ctx.globalAlpha = 1;
+  }
+};
+function scene(style, bg) {
+  var rocks = [{ x: 0.2, n: '54', sp: 0.1, o: 0.15 }, { x: 0.5, n: '56', sp: 0.08, o: 0.58 }, { x: 0.8, n: '63', sp: 0.09, o: 0.36 }];
+  return function (ctx, W, H, t) {
+    bg(ctx, W, H, t);
+    var r = clamp(Math.min(W * 0.15, H * 0.2), 22, 50), s = r * 0.5;
+    rocks.forEach(function (k, i) {
+      var y = ((t * k.sp + k.o) % 1) * (H * 0.72 + r * 2) - r + H * 0.04;
+      ROCK[style](ctx, W * k.x, y, r, i + 2, t * 0.3 * (i % 2 ? 1 : -1) + i, k.n, t);
+    });
+    ship(ctx, W / 2, H - s * 1.6, s, 0.3 + 0.3 * Math.abs(Math.sin(t * 18)));
+    var f = Math.round(clamp(W * 0.07, 16, 24));
+    ctx.font = '700 ' + f + 'px ' + FONT; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'rgba(12,16,36,.8)'; ctx.fillRect(8, 8, f * 4.6, f * 1.7);
+    ctx.fillStyle = C.ink; ctx.fillText('7 × 8 = ?', 8 + f * 0.45, 8 + f * 0.9);
+  };
+}
+demo('c2a', 1.1, scene('flat', BG.plain), 3);
+demo('c2b', 1.1, scene('shaded', BG.plain), 3);
+demo('c2c', 1.1, scene('crystal', BG.plain), 3);
+demo('c2d', 0.7, scene('flat', BG.plain), 3);
+demo('c2e', 0.7, scene('flat', BG.deepSpace), 3);
+
+// ---------- 4A streak flames ----------
+function flames(ctx, x0, y0, w, h, n, t, seed) {
+  ctx.globalCompositeOperation = 'lighter';
+  for (var i = 0; i < n; i++) {
+    var a = rnd(seed + i), life = (t * (0.9 + a) + rnd(seed + i + 99)) % 1;
+    var x = x0 + rnd(seed + i + 40) * w + Math.sin(t * 5 + i) * 3, y = y0 - life * h * (0.6 + 0.4 * a);
+    ctx.globalAlpha = (1 - life) * 0.85; ctx.fillStyle = life < 0.35 ? '#ffe2a0' : life < 0.65 ? C.amber : C.coral;
+    circle(ctx, x, y, (1 - life) * Math.abs(h) * 0.2 + 1); ctx.fill();
+  }
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+}
+demo('c4a', 0.7, function (ctx, W, H, t) {
+  BG.plain(ctx, W, H, t);
+  var p = (t % 10) / 0.8, s = Math.min(10, Math.floor(p)), frac = p - Math.floor(p), pad = 16, gap = 5, sw = (W - pad * 2 - gap * 9) / 10, my = H * 0.4, mh = clamp(H * 0.09, 14, 22);
+  var f = Math.round(clamp(W * 0.05, 14, 20)), mult = s >= 9 ? 4 : s >= 6 ? 3 : s >= 3 ? 2 : 1;
+  ctx.textBaseline = 'middle'; ctx.textAlign = 'left'; ctx.font = '700 ' + f + 'px ' + FONT; ctx.fillStyle = C.muted;
+  ctx.fillText('STREAK', pad, H * 0.12);
+  ctx.fillStyle = s >= 3 ? C.amber : C.ink; ctx.font = '700 ' + Math.round(f * 1.5) + 'px ' + FONT; ctx.fillText(s + ' in a row', pad, H * 0.12 + f * 1.5);
+  if (mult > 1) {
+    var pop = s < 10 && (s === 3 || s === 6 || s === 9) ? 1 + 0.35 * Math.max(0, 1 - frac * 2.5) : 1;
+    ctx.textAlign = 'right'; ctx.fillStyle = C.coral; ctx.font = '700 ' + Math.round(f * 2.1 * pop) + 'px ' + FONT;
+    ctx.fillText('×' + mult + ' score', W - pad, H * 0.17);
+  }
+  if (s >= 3) flames(ctx, pad, my + 2, s * (sw + gap) - gap, mh * (1.2 + s * 0.28), 6 + s * 5, t, 7);
+  for (var i = 0; i < 10; i++) {
+    var x = pad + i * (sw + gap), on = i < s, grow = on && i === s - 1 && s < 10 ? Math.min(1, 0.6 + frac * 2) : 1;
+    ctx.fillStyle = on ? 'hsl(' + Math.round(38 - i * 3) + ',100%,' + Math.round(66 - i * 1.2) + '%)' : '#1e2648';
+    ctx.fillRect(x, my + mh * (1 - grow) / 2, sw, mh * grow);
+    ctx.strokeStyle = on ? 'rgba(255,255,255,.35)' : C.line; ctx.lineWidth = 1.5; ctx.strokeRect(x, my, sw, mh);
+  }
+  var ss = clamp(H * 0.08, 12, 20), sy = H * 0.72;
+  if (s >= 3) flames(ctx, W / 2 - ss * 0.4, sy + ss * (1.4 + s * 0.22), ss * 0.8, -ss * (1 + s * 0.22), 4 + s * 3, t, 150);
+  ship(ctx, W / 2, sy, ss, 0.3 + s * 0.12 + 0.2 * Math.abs(Math.sin(t * 18)));
+}, 6.2);
+
+// ---------- 4C explosions ----------
+function boomFx(ctx, cx, cy, r, p, rich) {
+  var hit = 0.7, i, a, d, e = p - hit, sy = cy + r * 3.1;
+  ship(ctx, cx, sy, r * 0.42, 0.4);
+  if (p < hit) {
+    ROCK[rich ? 'shaded' : 'flat'](ctx, cx, cy, r, 4, p * 0.4, '56');
+    if (p > hit - 0.14) { ctx.strokeStyle = C.teal; ctx.lineWidth = 5; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(cx, sy - r * 0.5); ctx.lineTo(cx, cy + r * 0.6); ctx.stroke(); }
+    return;
+  }
+  var out = 1 - Math.exp(-2.6 * e), fade = clamp(1 - (e - 0.5) / 0.9, 0, 1);
+  if (rich) {
+    ctx.globalAlpha = clamp(1 - e * 5, 0, 1); ctx.fillStyle = '#fff'; circle(ctx, cx, cy, r * (0.8 + e * 5)); ctx.fill();
+    ctx.globalAlpha = clamp(1 - e / 0.55, 0, 1); ctx.strokeStyle = C.amber; ctx.lineWidth = 4; circle(ctx, cx, cy, r * (0.6 + out * 2.4)); ctx.stroke();
+    for (i = 0; i < 9; i++) {
+      a = i / 9 * TAU + rnd(i + 60); d = r * (0.9 + 1.9 * rnd(i + 70)) * out;
+      ctx.globalAlpha = fade;
+      ROCK.shaded(ctx, cx + Math.cos(a) * d, cy + Math.sin(a) * d, r * (0.16 + 0.2 * rnd(i + 80)), i + 9, e * (2 + 5 * rnd(i + 85)) * (i % 2 ? 1 : -1), '');
+    }
+  }
+  for (i = 0; i < (rich ? 22 : 16); i++) {
+    a = rnd(i + 20) * TAU; d = r * (0.6 + 2.6 * rnd(i + 33)) * (rich ? out * 1.15 : Math.min(1, e * 1.6));
+    ctx.globalAlpha = clamp(1 - e / (rich ? 0.9 : 0.6), 0, 1); ctx.fillStyle = i % 3 ? C.amber : (rich ? '#ffe2a0' : C.rockEdge);
+    ctx.fillRect(cx + Math.cos(a) * d - 2, cy + Math.sin(a) * d - 2, 4, 4);
+  }
+  ctx.globalAlpha = clamp(1 - e / 1.1, 0, 1); ctx.fillStyle = C.amber; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.font = '700 ' + Math.round(r * 0.6) + 'px ' + FONT; ctx.fillText('+10', cx, cy - r * 0.2 - e * r * 1.2);
+  ctx.globalAlpha = 1;
+}
+demo('c4c', 0.7, function (ctx, W, H, t) {
+  BG.plain(ctx, W, H, t);
+  var p = t % 2.8, r = clamp(Math.min(W * 0.1, H * 0.15), 18, 40), f = Math.round(clamp(W * 0.045, 13, 18));
+  ctx.strokeStyle = C.line; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(W / 2, 8); ctx.lineTo(W / 2, H - 8); ctx.stroke();
+  ctx.font = '700 ' + f + 'px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = C.muted;
+  ctx.fillText('NOW', W * 0.25, f); ctx.fillStyle = C.amber; ctx.fillText('WITH CHUNKS', W * 0.75, f);
+  ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W / 2 - 1, H); ctx.clip(); boomFx(ctx, W * 0.25, H * 0.42, r, p, false); ctx.restore();
+  ctx.save(); ctx.beginPath(); ctx.rect(W / 2 + 1, 0, W / 2, H); ctx.clip(); boomFx(ctx, W * 0.75, H * 0.42, r, p, true); ctx.restore();
+}, 1.05);
+
+// ---------- 1 characters (inline SVG) ----------
+var D = C.deep;
+function star(x, y, s, fill) {
+  var d = '', i, a, r;
+  for (i = 0; i < 10; i++) { a = -Math.PI / 2 + i * Math.PI / 5; r = i % 2 ? s * 0.45 : s; d += (i ? 'L' : 'M') + (x + Math.cos(a) * r).toFixed(1) + ' ' + (y + Math.sin(a) * r).toFixed(1); }
+  return '<path d="' + d + 'Z" fill="' + fill + '"/>';
+}
+var ST = 'fill="none" stroke-linecap="round" stroke-linejoin="round"';
+var CHARS = {
+  robot: function (m) {
+    var up = m === 'cheer', bad = m === 'oops', lamp = bad ? C.coral : C.amber;
+    var arm = up ? ['38 90 22 68', '82 90 98 68'] : bad ? ['38 92 29 110', '82 92 91 110'] : ['38 90 25 102', '82 90 95 102'];
+    var eyes = up ? '<path d="M41 51q7-10 14 0M65 51q7-10 14 0" stroke="' + C.amber + '" stroke-width="4" ' + ST + '/>'
+      : bad ? '<path d="M42 43l10 5-10 5M78 43l-10 5 10 5" stroke="' + C.coral + '" stroke-width="4" ' + ST + '/>'
+      : '<circle cx="48" cy="48" r="6" fill="' + C.amber + '"/><circle cx="72" cy="48" r="6" fill="' + C.amber + '"/>';
+    var mouth = up ? '<path d="M49 56h22q-11 13-22 0z" fill="' + C.amber + '"/>'
+      : bad ? '<path d="M48 61q4-5 8 0t8 0 8 0" stroke="' + C.coral + '" stroke-width="3" ' + ST + '/>'
+      : '<path d="M52 59q8 5 16 0" stroke="' + C.amber + '" stroke-width="3" ' + ST + '/>';
+    return (up ? star(22, 22, 7, C.amber) + star(100, 30, 5, C.teal) : '') +
+      '<ellipse cx="60" cy="121" rx="' + (up ? 13 : 10) + '" ry="4" fill="' + lamp + '" opacity=".75"/>' +
+      '<path d="M60 23' + (bad ? 'q1-9 9-10' : 'v-12') + '" stroke="' + C.muted + '" stroke-width="3" ' + ST + '/>' +
+      '<circle cx="' + (bad ? 70 : 60) + '" cy="' + (bad ? 12 : 9) + '" r="' + (up ? 6.5 : 5) + '" fill="' + lamp + '"/>' +
+      arm.map(function (a) { var p = a.split(' '); return '<path d="M' + p[0] + ' ' + p[1] + 'L' + p[2] + ' ' + p[3] + '" stroke="#3aa99b" stroke-width="7" ' + ST + '/><circle cx="' + p[2] + '" cy="' + p[3] + '" r="6" fill="' + C.ink + '"/>'; }).join('') +
+      '<rect x="38" y="80" width="44" height="32" rx="11" fill="#3aa99b"/><circle cx="60" cy="96" r="5.5" fill="' + lamp + '"/>' +
+      '<rect x="24" y="22" width="72" height="56" rx="18" fill="' + C.teal + '"/><rect x="33" y="31" width="54" height="38" rx="12" fill="' + D + '"/>' + eyes + mouth;
+  },
+  blob: function (m) {
+    var up = m === 'cheer', bad = m === 'oops', P = '#a98bff', P2 = '#8466e0', dy = up ? -6 : 0, tip = up ? C.amber : bad ? '#7c86b8' : C.teal;
+    var feel = up ? ['M48 36q-4-14-8-22', 40, 12, 'M72 36q4-14 8-22', 80, 12] : bad ? ['M46 38q-14-6-22 6', 24, 45, 'M74 38q14-6 22 6', 96, 45] : ['M48 36q-6-14-15-17', 32, 18, 'M72 36q6-14 15-17', 88, 18];
+    var arm = up ? 'M24 84L11 64M96 84L109 64' : bad ? 'M23 92L15 107M97 92L105 107' : 'M23 88L12 96M97 88L108 96';
+    var eyes = up ? '<path d="M37 70q9-12 18 0M65 70q9-12 18 0" stroke="' + D + '" stroke-width="4.5" ' + ST + '/>'
+      : '<circle cx="46" cy="68" r="11" fill="#fff"/><circle cx="74" cy="68" r="11" fill="#fff"/><circle cx="' + (bad ? 44 : 47) + '" cy="' + (bad ? 72 : 68) + '" r="' + (bad ? 4 : 5.5) + '" fill="' + D + '"/><circle cx="' + (bad ? 72 : 75) + '" cy="' + (bad ? 72 : 68) + '" r="' + (bad ? 4 : 5.5) + '" fill="' + D + '"/>' +
+        (bad ? '<path d="M35 54l16 5M85 54l-16 5" stroke="' + D + '" stroke-width="3.5" ' + ST + '/>' : '');
+    var mouth = up ? '<path d="M46 82h28q-14 20-28 0z" fill="' + D + '"/><path d="M53 91q7-5 14 0-7 6-14 0z" fill="' + C.coral + '"/>'
+      : bad ? '<ellipse cx="60" cy="92" rx="5" ry="6" fill="' + D + '"/>'
+      : '<path d="M50 87q10 8 20 0" stroke="' + D + '" stroke-width="4" ' + ST + '/>';
+    return '<ellipse cx="60" cy="124" rx="' + (up ? 24 : 32) + '" ry="4" fill="#000" opacity=".35"/>' + (up ? star(18, 34, 6, C.amber) + star(104, 40, 5, C.coral) : '') +
+      '<g transform="translate(0 ' + dy + ')"><path d="' + feel[0] + feel[3] + '" stroke="' + P2 + '" stroke-width="4" ' + ST + '/><circle cx="' + feel[1] + '" cy="' + feel[2] + '" r="6" fill="' + tip + '"/><circle cx="' + feel[4] + '" cy="' + feel[5] + '" r="6" fill="' + tip + '"/>' +
+      '<path d="' + arm + '" stroke="' + P + '" stroke-width="10" ' + ST + '/>' +
+      '<path d="M60 32C90 32 104 60 100 92 98 114 80 120 60 120 40 120 22 114 20 92 16 60 30 32 60 32Z" fill="' + P + '"/>' +
+      '<circle cx="36" cy="100" r="5" fill="' + P2 + '" opacity=".6"/><circle cx="84" cy="104" r="4" fill="' + P2 + '" opacity=".6"/><circle cx="72" cy="44" r="3.5" fill="' + P2 + '" opacity=".6"/>' +
+      '<circle cx="32" cy="84" r="6" fill="' + C.coral + '" opacity=".45"/><circle cx="88" cy="84" r="6" fill="' + C.coral + '" opacity=".45"/>' + eyes + mouth + '</g>';
+  },
+  kid: function (m) {
+    var up = m === 'cheer', bad = m === 'oops', SK = '#c68a5c', HR = '#3a2418';
+    var arm = up ? ['37 88 20 66', '83 88 100 66'] : bad ? ['37 90 26 108', '83 88 96 60'] : ['37 90 24 104', '83 88 101 74'];
+    var eyes = up ? '<path d="M46 55q5-7 10 0M64 55q5-7 10 0" stroke="' + HR + '" stroke-width="3.5" ' + ST + '/>'
+      : '<circle cx="51" cy="54" r="3.6" fill="' + HR + '"/><circle cx="69" cy="54" r="3.6" fill="' + HR + '"/>' + (bad ? '<path d="M45 47l10 3M75 47l-10 3" stroke="' + HR + '" stroke-width="3" ' + ST + '/>' : '');
+    var mouth = up ? '<path d="M51 62h18q-9 12-18 0z" fill="#fff" stroke="' + HR + '" stroke-width="2"/>'
+      : bad ? '<path d="M53 67q7-6 14 0" stroke="' + HR + '" stroke-width="3" ' + ST + '/><path d="M80 44q4 7 0 9-4-2 0-9z" fill="' + C.teal + '"/>'
+      : '<path d="M52 63q8 7 16 0" stroke="' + HR + '" stroke-width="3" ' + ST + '/>';
+    return (up ? star(14, 40, 6, C.amber) + star(106, 44, 6, C.teal) + star(60, 6, 5, C.coral) : '') +
+      '<rect x="30" y="82" width="60" height="30" rx="9" fill="#7c86b8"/>' +
+      arm.map(function (a) { var p = a.split(' '); return '<path d="M' + p[0] + ' ' + p[1] + 'L' + p[2] + ' ' + p[3] + '" stroke="' + C.amber + '" stroke-width="10" ' + ST + '/><circle cx="' + p[2] + '" cy="' + p[3] + '" r="7" fill="' + C.ink + '"/>'; }).join('') +
+      '<rect x="37" y="80" width="46" height="36" rx="12" fill="' + C.amber + '"/><rect x="47" y="92" width="26" height="14" rx="4" fill="' + D + '"/><circle cx="54" cy="99" r="3" fill="' + C.teal + '"/><circle cx="66" cy="99" r="3" fill="' + C.coral + '"/>' +
+      '<rect x="40" y="114" width="16" height="12" rx="5" fill="' + C.ink + '"/><rect x="64" y="114" width="16" height="12" rx="5" fill="' + C.ink + '"/>' +
+      '<circle cx="60" cy="50" r="36" fill="' + C.ink + '"/><ellipse cx="60" cy="52" rx="28" ry="26" fill="#2a3566"/>' +
+      '<circle cx="60" cy="56" r="20" fill="' + SK + '"/><path d="M40 53q2-20 20-19 18-1 20 19-8-10-20-9-12-1-20 9z" fill="' + HR + '"/>' + eyes + mouth +
+      '<path d="M38 40q8-13 22-13" stroke="#fff" stroke-width="4" opacity=".55" ' + ST + '/>' +
+      '<rect x="20" y="44" width="8" height="16" rx="4" fill="' + C.coral + '"/><rect x="92" y="44" width="8" height="16" rx="4" fill="' + C.coral + '"/>';
+  }
+};
+var MOODS = [['ready', 'Ready'], ['cheer', 'Right answer'], ['oops', 'Oops']];
+Array.prototype.forEach.call(document.querySelectorAll('[data-char]'), function (el) {
+  var who = el.getAttribute('data-char');
+  el.innerHTML = MOODS.map(function (m) {
+    return '<figure class="' + m[0] + '"><svg viewBox="0 0 120 130" role="img" aria-label="' + who + ', ' + m[1] + '">' + CHARS[who](m[0]) + '</svg><figcaption>' + m[1] + '</figcaption></figure>';
+  }).join('');
+});
+
+// ---------- 4B mission map (inline SVG) ----------
+(function () {
+  var P = [[52, 258, '#4fd6c4', 3], [150, 180, '#ff9f6b', 3], [246, 236, '#a98bff', 2], [330, 150, '#ffb84d', 0], [236, 78, '#6f7aa8', -1], [100, 62, '#6f7aa8', -1], [352, 44, '#6f7aa8', -1]];
+  var cur = 3, s = '', i, k;
+  for (i = 0; i < 26; i++) s += '<circle cx="' + (rnd(i + 400) * 400).toFixed(0) + '" cy="' + (rnd(i + 430) * 310).toFixed(0) + '" r="' + (0.8 + rnd(i) * 1.2).toFixed(1) + '" fill="#fff" opacity="' + (0.3 + rnd(i + 9) * 0.5).toFixed(2) + '"/>';
+  for (i = 0; i < P.length - 1; i++) {
+    var a = P[i], b = P[i + 1], mx = (a[0] + b[0]) / 2 + (b[1] - a[1]) * 0.18, my = (a[1] + b[1]) / 2 - (b[0] - a[0]) * 0.18;
+    s += '<path d="M' + a[0] + ' ' + a[1] + 'Q' + mx.toFixed(0) + ' ' + my.toFixed(0) + ' ' + b[0] + ' ' + b[1] + '" fill="none" stroke="' + (i < cur ? C.amber : C.line) + '" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 11"/>';
+  }
+  P.forEach(function (p, i) {
+    var x = p[0], y = p[1], r = i === cur ? 30 : 26, lock = p[3] < 0;
+    if (i === cur) s += '<circle class="pulse" cx="' + x + '" cy="' + y + '" r="' + (r + 8) + '" fill="none" stroke="' + C.amber + '" stroke-width="4"/>';
+    s += '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="' + p[2] + '" opacity="' + (lock ? 0.5 : 1) + '"/>' +
+      '<path d="M' + (x - r * 0.3) + ' ' + (y + r * 0.95) + 'A' + r + ' ' + r + ' 0 0 0 ' + (x + r * 0.95) + ' ' + (y - r * 0.3) + 'A' + (r * 1.5) + ' ' + (r * 1.5) + ' 0 0 1 ' + (x - r * 0.3) + ' ' + (y + r * 0.95) + 'Z" fill="#000" opacity=".28"/>' +
+      (i % 2 ? '<ellipse cx="' + x + '" cy="' + y + '" rx="' + (r * 1.45) + '" ry="' + (r * 0.3) + '" fill="none" stroke="' + (lock ? '#6f7aa8' : C.ink) + '" stroke-width="3" opacity=".6" transform="rotate(-18 ' + x + ' ' + y + ')"/>' : '') +
+      '<text x="' + x + '" y="' + (y + 8) + '" text-anchor="middle" font-family=\'' + FONT + '\' font-weight="700" font-size="24" fill="#fff" stroke="' + D + '" stroke-width="5" paint-order="stroke" stroke-linejoin="round" opacity="' + (lock ? 0.6 : 1) + '">×' + (i + 2) + '</text>';
+    if (!lock && i !== cur) for (k = 0; k < 3; k++) s += star(x - 18 + k * 18, y + r + 15, 8, k < p[3] ? C.amber : C.line);
+    if (i === cur) s += '<path d="M' + x + ' ' + (y - r - 30) + 'l11 20h-22z" fill="' + C.amber + '"/><circle cx="' + x + '" cy="' + (y - r - 17) + '" r="3" fill="' + D + '"/>' +
+      '<text x="' + x + '" y="' + (y + r + 26) + '" text-anchor="middle" font-family=\'' + FONT + '\' font-weight="700" font-size="17" fill="' + C.amber + '">NEXT</text>';
+  });
+  $('map').innerHTML = '<svg class="map" viewBox="0 0 400 310" role="img" aria-label="Star chart with seven planets joined by a dotted path. Three are finished, one is next, three are locked.">' + s + '</svg>';
+})();
+
+// ---------- 3 sounds (Web Audio, starts only from clicks) ----------
+var AC = null, OUT = null, MUS = null, timer = 0, msg = $('sndmsg');
+function audio() {
+  if (!AC) {
+    var A = window.AudioContext || window.webkitAudioContext;
+    AC = new A(); OUT = AC.createGain(); OUT.gain.value = 0.6; OUT.connect(AC.destination);
+    MUS = AC.createGain(); MUS.gain.value = 0; MUS.connect(OUT);
+  }
+  if (AC.state === 'suspended') AC.resume();
+  return AC;
+}
+// o: {f, to, dur, type, vol, at (delay s), t (absolute), atk, out}
+function tone(o) {
+  var t = o.t != null ? o.t : AC.currentTime + (o.at || 0), osc = AC.createOscillator(), g = AC.createGain(), v = o.vol || 0.12;
+  osc.type = o.type || 'sine'; osc.frequency.setValueAtTime(o.f, t);
+  if (o.to) osc.frequency.exponentialRampToValueAtTime(o.to, t + o.dur);
+  if (o.atk) { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + o.atk); } else g.gain.setValueAtTime(v, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + o.dur);
+  osc.connect(g); g.connect(o.out || OUT); osc.start(t); osc.stop(t + o.dur + 0.03);
+}
+// o: {dur, vol, at, t, kind ('lowpass'/'highpass'), f, to, out}
+function noise(o) {
+  var t = o.t != null ? o.t : AC.currentTime + (o.at || 0), n = Math.max(1, Math.floor(AC.sampleRate * o.dur)), buf = AC.createBuffer(1, n, AC.sampleRate), d = buf.getChannelData(0), i;
+  for (i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 2);
+  var src = AC.createBufferSource(), g = AC.createGain(), last = g; src.buffer = buf; g.gain.value = o.vol || 0.25;
+  if (o.kind) {
+    var fl = AC.createBiquadFilter(); fl.type = o.kind; fl.frequency.setValueAtTime(o.f, t);
+    if (o.to) fl.frequency.exponentialRampToValueAtTime(o.to, t + o.dur);
+    src.connect(fl); fl.connect(g);
+  } else src.connect(g);
+  last.connect(o.out || OUT); src.start(t);
+}
+var SND = {
+  oldLaser: function () { tone({ f: 990, to: 220, dur: 0.16, type: 'sawtooth', vol: 0.1 }); },
+  oldBoom: function () { noise({ dur: 0.35, vol: 0.25 }); },
+  oldWrong: function () { tone({ f: 170, to: 70, dur: 0.4, type: 'sawtooth', vol: 0.16 }); noise({ dur: 0.2, vol: 0.12 }); },
+  laser: function () {
+    tone({ f: 1500, to: 260, dur: 0.2, type: 'square', vol: 0.07 }); tone({ f: 2400, to: 520, dur: 0.16, type: 'sine', vol: 0.14 });
+    tone({ f: 760, to: 130, dur: 0.22, type: 'triangle', vol: 0.12 }); noise({ dur: 0.06, vol: 0.12, kind: 'highpass', f: 4000 });
+  },
+  boom: function () {
+    noise({ dur: 0.8, vol: 0.5, kind: 'lowpass', f: 2600, to: 160 }); tone({ f: 120, to: 32, dur: 0.7, type: 'sine', vol: 0.5 });
+    tone({ f: 70, to: 28, dur: 0.9, type: 'triangle', vol: 0.3, at: 0.03 });
+    noise({ dur: 0.12, vol: 0.14, at: 0.14, kind: 'highpass', f: 2500 }); noise({ dur: 0.1, vol: 0.1, at: 0.27, kind: 'highpass', f: 3200 });
+  },
+  chime: function () {
+    [1046.5, 1318.5, 1568].forEach(function (f, i) {
+      tone({ f: f, dur: 0.55, vol: 0.16, at: i * 0.075, atk: 0.006 }); tone({ f: f * 2, dur: 0.3, vol: 0.05, at: i * 0.075, atk: 0.006 });
+    });
+  },
+  bonk: function () {
+    tone({ f: 230, to: 105, dur: 0.24, type: 'sine', vol: 0.34, atk: 0.008 }); tone({ f: 345, to: 150, dur: 0.12, type: 'triangle', vol: 0.12, atk: 0.008 });
+    tone({ f: 175, to: 88, dur: 0.22, type: 'sine', vol: 0.22, at: 0.17, atk: 0.008 });
+  },
+  sparkle: function () {
+    [1175, 1568, 1976, 2349, 3136, 3951].forEach(function (f, i) { tone({ f: f, dur: 0.22, vol: 0.09, at: i * 0.055, atk: 0.004 }); });
+    tone({ f: 392, to: 784, dur: 0.4, type: 'triangle', vol: 0.1, atk: 0.02 });
+  },
+  fanfare: function () {
+    [392, 523.25, 659.25, 783.99].forEach(function (f, i) { tone({ f: f, dur: 0.16, type: 'triangle', vol: 0.2, at: i * 0.13, atk: 0.006 }); tone({ f: f, dur: 0.14, type: 'square', vol: 0.045, at: i * 0.13 }); });
+    [523.25, 659.25, 783.99, 1046.5].forEach(function (f) { tone({ f: f, dur: 0.9, type: 'triangle', vol: 0.14, at: 0.54, atk: 0.01 }); });
+    tone({ f: 1046.5, dur: 0.9, type: 'square', vol: 0.04, at: 0.54 }); tone({ f: 130.8, dur: 0.9, type: 'sine', vol: 0.25, at: 0.54, atk: 0.01 });
+    [2093, 2637, 3136].forEach(function (f, i) { tone({ f: f, dur: 0.25, vol: 0.06, at: 0.75 + i * 0.09, atk: 0.004 }); });
+  }
+};
+function say(text) { if (msg) msg.textContent = text; }
+function blocked() { say('Sound could not start in this viewer. Try opening the page in a normal browser tab.'); }
+Array.prototype.forEach.call(document.querySelectorAll('[data-snd]'), function (b) {
+  b.addEventListener('click', function () {
+    try { audio(); SND[b.getAttribute('data-snd')](); say('Playing: ' + b.closest('.opt').querySelector('.code').textContent + ' ' + b.textContent); }
+    catch (e) { blocked(); }
+  });
+});
+
+// 3C looping tune: 4 bars of 8 steps. Numbers are piano keys (60 = middle C), 0 = rest.
+var LEAD = [69, 0, 72, 76, 0, 74, 72, 0, 67, 0, 71, 74, 0, 72, 71, 0, 65, 0, 69, 72, 0, 76, 74, 72, 76, 0, 74, 0, 71, 0, 67, 71];
+var BASS = [45, 43, 41, 40], STEP = 60 / 116 / 2, step = 0, nextT = 0;
+function hz(m) { return 440 * Math.pow(2, (m - 69) / 12); }
+function schedule() {
+  try {
+    while (nextT < AC.currentTime + 0.3) {
+      var i = step % 32, bar = i >> 3, s = i & 7, root = BASS[bar];
+      if (LEAD[i]) { tone({ f: hz(LEAD[i]), dur: STEP * 1.7, type: 'triangle', vol: 0.2, t: nextT, atk: 0.01, out: MUS }); tone({ f: hz(LEAD[i]), dur: STEP * 0.9, type: 'square', vol: 0.035, t: nextT, out: MUS }); }
+      if (s % 2 === 0) tone({ f: hz(root + (s % 4 ? 12 : 0)), dur: STEP * 1.5, type: 'triangle', vol: 0.26, t: nextT, atk: 0.008, out: MUS });
+      if (s === 0) [0, 7, 12].forEach(function (k) { tone({ f: hz(root + 12 + k), dur: STEP * 7.5, type: 'sine', vol: 0.05, t: nextT, atk: 0.05, out: MUS }); });
+      if (s % 2) noise({ dur: 0.05, vol: 0.05, t: nextT, kind: 'highpass', f: 6000, out: MUS });
+      if (s === 0 || s === 4) tone({ f: 130, to: 45, dur: 0.12, type: 'sine', vol: 0.3, t: nextT, out: MUS });
+      nextT += STEP; step++;
+    }
+  } catch (e) { stopTune(); }
+}
+function stopTune() {
+  clearInterval(timer); timer = 0;
+  try { MUS.gain.cancelScheduledValues(AC.currentTime); MUS.gain.setTargetAtTime(0, AC.currentTime, 0.08); } catch (e) {}
+  var b = $('tune'); b.textContent = 'Start tune'; b.setAttribute('aria-pressed', 'false');
+}
+$('tune').addEventListener('click', function () {
+  try {
+    if (timer) { stopTune(); say('Tune stopped.'); return; }
+    audio(); step = 0; nextT = AC.currentTime + 0.08;
+    MUS.gain.cancelScheduledValues(AC.currentTime); MUS.gain.setTargetAtTime(0.55, AC.currentTime, 0.05);
+    schedule(); timer = setInterval(schedule, 100);
+    this.textContent = 'Stop tune'; this.setAttribute('aria-pressed', 'true'); say('Playing: 3C Background tune. Tap again to stop.');
+  } catch (e) { blocked(); }
+});
+document.addEventListener('visibilitychange', function () { if (document.hidden && timer) stopTune(); });
+})();
+</script>
+</body>
+</html>
