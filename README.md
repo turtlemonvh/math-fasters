@@ -4,20 +4,22 @@ A space arcade game for practising math facts. Runs in any browser on a tablet, 
 
 **Play:** https://turtlemonvh.github.io/math-fasters/
 
-## Two games, four kinds of facts
+## Three games, four kinds of facts
 
 Pick a game on the mission map:
 
 - **Asteroid Blast** (tap the answer): a fact shows on the console. Tap the asteroid carrying the right answer before it reaches the red line.
 - **Fuel-Up** (type the answer): type the answer on the keypad before the comet lands. Ten answers fill the tank and the rocket lifts off to the next stage. The `?` key shows the answer and counts as a miss.
 
-Both games share the same rules:
+- **Cave Flight** (fly through the answer): slide a finger up or down to steer the ship through the gate showing the right answer.
+
+All games share the same rules:
 
 - Three shields. A wrong answer or running out of time costs one. No shields left is game over.
 - A mission is 3 waves of 10 facts. Each wave is faster, and clearing one restores a shield.
 - Faster answers and streaks score more.
 - A missed fact is shown with its answer and comes back a few turns later.
-- Keyboard: in Asteroid Blast keys 1 to 4 pick an asteroid from left to right; in Fuel-Up type digits. Esc pauses.
+- Keyboard: in Asteroid Blast keys 1 to 4 pick an asteroid from left to right; in Fuel-Up type digits; in Cave Flight use the up and down arrows. Esc pauses.
 
 Facts can be multiplication, division, addition or subtraction. A grown-up chooses which kinds each pilot sees.
 
@@ -45,7 +47,7 @@ npm test    # runs the rule tests (Node 20+)
 ```
 
 - `js/logic.js`: game rules (missions, fact picking, decoys, scoring, the mission session). Pure functions, covered by `test/`.
-- `js/play.js`: the Asteroid Blast canvas scene. `js/fuel.js`: the Fuel-Up scene.
+- `js/play.js`: the Asteroid Blast canvas scene. `js/fuel.js`: the Fuel-Up scene. `js/cave.js`: the Cave Flight scene.
 - `js/main.js`: screens and wiring. `js/store.js`: saved profiles. `js/audio.js`: synthesised sounds.
 - `docs/plan/`: the original plan and mock-ups.
 

@@ -4,6 +4,7 @@ import { load, save, newProfile } from './store.js';
 import { sfx, unlock, setSound } from './audio.js';
 import { createGame } from './play.js';
 import { createFuelGame } from './fuel.js';
+import { createCaveGame } from './cave.js';
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -15,6 +16,7 @@ const starRow = n => [0, 1, 2].map(i => `<span class="${i < n ? 'star-on' : 'sta
 const SCENES = {
   blast: { name: 'Asteroid Blast', hint: 'Tap the answer', create: createGame },
   fuel: { name: 'Fuel-Up', hint: 'Type the answer', create: createFuelGame },
+  cave: { name: 'Cave Flight', hint: 'Fly through the answer', create: createCaveGame },
 };
 const ALL_OPS = ['mul', 'div', 'add', 'sub'];
 
