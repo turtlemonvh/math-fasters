@@ -98,11 +98,19 @@ function renderMap() {
   const list = $('#mission-list');
   list.classList.toggle('chartmode', fx.chart);
   list.innerHTML = fx.chart
-    ? starChartSvg(items, OP_COLOR[op]) + free
+    ? `<div class="chartbox">${starChartSvg(items, OP_COLOR[op])}</div>` + free
     : items.map(m => `<button class="btn mission${m.next ? ' next' : ''}" data-act="play-mission" data-id="${m.id}" ${m.open ? '' : 'disabled'}>
       <span class="num">MISSION ${m.i + 1}</span><span>${m.open ? '' : '🔒 '}${m.name}</span><span class="facts">${m.label}</span><span class="stars">${starRow(m.stars)}</span></button>`).join('') + free;
   show('s-map');
-  if (fx.chart) list.querySelector('.pulse')?.scrollIntoView({ block: 'center' });
+  if (fx.chart) {
+    // The chart scrolls inside its own window, centred on the next mission, so the page itself never jumps.
+    const box = list.querySelector('.chartbox');
+    const target = list.querySelector('.pulse') || [...list.querySelectorAll('.planet:not(.locked)')].pop();
+    if (box && target) {
+      const t = target.getBoundingClientRect(), b = box.getBoundingClientRect();
+      box.scrollTop += t.top + t.height / 2 - (b.top + b.height / 2);
+    }
+  }
 }
 
 // ---------- free practice ----------

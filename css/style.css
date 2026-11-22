@@ -186,3 +186,7 @@ input[type=text] { font: 700 1.3rem var(--display); color: var(--ink); backgroun
 .logrow .star-on, .logrow .star-off { letter-spacing: 2px; }
 
 @media (prefers-reduced-motion: reduce) { .buddy, .chart .pulse, #s-play.flames .hud-mult.hot { animation: none !important; } }
+
+/* the star chart lives in a fixed window that scrolls on its own */
+.chartbox { width: min(100%, 460px); height: min(52dvh, 480px); overflow-y: auto; overscroll-behavior: contain; background: var(--deep); border: 2px solid var(--line); border-radius: 16px; }
+.chartbox .chart { width: 100%; display: block; }
