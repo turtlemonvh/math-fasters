@@ -149,7 +149,8 @@ export function fallSeconds(missionSpeed, kidSpeed, wave) {
   return BASE[missionSpeed] * KID[kidSpeed] * (1 - 0.1 * (wave - 1));
 }
 
-export function isUnlocked(missions, i, progress, unlockAll) {
-  if (i === 0 || unlockAll) return true;
+// through: index of the highest mission a grown-up has opened by hand (0 = only the first).
+export function isUnlocked(missions, i, progress, through = 0) {
+  if (i <= through) return true;
   return (progress[missions[i - 1].id]?.stars || 0) >= 1;
 }

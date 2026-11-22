@@ -16,6 +16,7 @@ setSound(data.sound);
 let pilot = null, missions = [], mission = null, game = null, newColor = COLORS[0], armed = null;
 
 const persist = () => save(data);
+const startAt = () => pilot.settings.unlockAll ? 99 : (pilot.settings.startAt || 0);
 const totalStars = p => L.buildMissions(p.settings.tables).reduce((n, m) => n + (p.missions[m.id]?.stars || 0), 0);
 
 function show(id) {
@@ -46,7 +47,7 @@ function renderMap() {
   $('#map-pilot').innerHTML = `${ship(pilot.color)}<div><div>${esc(pilot.name)}</div><div class="sub">${L.rankFor(s)} · ${s} ★</div></div>`;
   let nextMarked = false;
   $('#mission-list').innerHTML = missions.map((m, i) => {
-    const open = L.isUnlocked(missions, i, pilot.missions, pilot.settings.unlockAll);
+    const open = L.isUnlocked(missions, i, pilot.missions, startAt());
     const got = pilot.missions[m.id]?.stars || 0;
     const isNext = open && !got && !nextMarked;
     if (isNext) nextMarked = true;
@@ -135,9 +136,11 @@ function renderSettings() {
       <p class="muted">Each table gets its own mission. Facts go up to ${max} × ${max}.</p></section>
     <section><h3>Speed</h3>
       <div class="chips">${['slow', 'medium', 'fast'].map(s => chip('set-speed', s, st.speed === s, s[0].toUpperCase() + s.slice(1))).join('')}</div></section>
+    <section><h3>Missions unlocked up to</h3>
+      <div class="chips">${L.buildMissions(st.tables).map((m, i) => chip('set-start', i, Math.min(startAt(), L.buildMissions(st.tables).length - 1) === i, `${i + 1} · ${m.label}`)).join('')}</div>
+      <p class="muted">Missions up to this one are open right away. Later ones still unlock by earning a star.</p></section>
     <section><h3>Options</h3>
       <div class="chips">
-        ${chip('toggle-unlock', '', st.unlockAll, 'All missions unlocked')}
         ${chip('toggle-sound', '', data.sound, 'Sound (all pilots)')}
       </div></section>
     <section><h3>How ${esc(pilot.name)} is doing</h3>
@@ -161,6 +164,7 @@ function renderSettings() {
 // ---------- actions ----------
 const actions = {
   'new-pilot': renderNew,
+  gate: () => { $('#gate-pass').value = ''; $('#gate-msg').textContent = ''; show('s-gate'); $('#gate-pass').focus(); },
   'back-pilots': () => { pilot = null; renderPilots(); },
   'pick-color': el => { newColor = el.dataset.c; document.querySelectorAll('.swatch').forEach(s => s.setAttribute('aria-pressed', s.dataset.c === newColor)); },
   'pick-pilot': el => { pilot = data.profiles.find(p => p.id === el.dataset.id); if (pilot) renderMap(); },
@@ -177,7 +181,7 @@ const actions = {
     persist(); renderSettings();
   },
   'set-speed': el => { pilot.settings.speed = el.dataset.v; persist(); renderSettings(); },
-  'toggle-unlock': () => { pilot.settings.unlockAll = !pilot.settings.unlockAll; persist(); renderSettings(); },
+  'set-start': el => { pilot.settings.startAt = Number(el.dataset.v); pilot.settings.unlockAll = false; persist(); renderSettings(); },
   'toggle-sound': () => { data.sound = !data.sound; setSound(data.sound); persist(); renderSettings(); },
   reset: () => {
     if (armed !== 'reset') { armed = 'reset'; return renderSettings(); }
@@ -207,22 +211,13 @@ $('#new-form').addEventListener('submit', e => {
   renderMap();
 });
 
-// Grown-up gate: hold the gear for 2 seconds.
-{
-  const gear = $('#gear');
-  let t = 0;
-  const cancel = () => { clearTimeout(t); gear.classList.remove('holding'); };
-  gear.addEventListener('pointerdown', e => {
-    e.preventDefault();
-    gear.classList.add('holding');
-    t = setTimeout(() => { cancel(); unlock(); renderSettings(); }, 2000);
-  });
-  for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) gear.addEventListener(ev, cancel);
-  gear.addEventListener('contextmenu', e => e.preventDefault());
-  // Keyboard users: hold Enter or Space.
-  gear.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) gear.dispatchEvent(new PointerEvent('pointerdown')); });
-  gear.addEventListener('keyup', cancel);
-}
+// Grown-up gate: a simple password keeps kids out of settings. It is not real security.
+const PARENT_PASSWORD = 'faster';
+$('#gate-form').addEventListener('submit', e => {
+  e.preventDefault();
+  if ($('#gate-pass').value.trim().toLowerCase() === PARENT_PASSWORD) { $('#gate-pass').blur(); renderSettings(); }
+  else { $('#gate-msg').textContent = 'That is not the password. Try again.'; $('#gate-pass').value = ''; }
+});
 
 document.addEventListener('visibilitychange', () => { if (document.hidden) pauseGame(); });
 window.addEventListener('keydown', e => { if (e.key === 'Escape') pauseGame(); });

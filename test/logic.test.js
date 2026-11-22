@@ -78,8 +78,9 @@ test('score, stars, rank, speed, unlock', () => {
   assert.ok(L.fallSeconds('medium', 'medium', 3) < L.fallSeconds('medium', 'medium', 1));
   assert.ok(L.fallSeconds('slow', 'slow', 1) > L.fallSeconds('fast', 'fast', 1));
   const m = L.buildMissions(T7);
-  assert.equal(L.isUnlocked(m, 0, {}, false), true);
-  assert.equal(L.isUnlocked(m, 1, {}, false), false);
-  assert.equal(L.isUnlocked(m, 1, { 't1-2': { stars: 1 } }, false), true);
-  assert.equal(L.isUnlocked(m, 5, {}, true), true);
+  assert.equal(L.isUnlocked(m, 0, {}, 0), true);
+  assert.equal(L.isUnlocked(m, 1, {}, 0), false);
+  assert.equal(L.isUnlocked(m, 1, { 't1-2': { stars: 1 } }, 0), true);
+  assert.equal(L.isUnlocked(m, 4, {}, 4), true);
+  assert.equal(L.isUnlocked(m, 5, {}, 4), false);
 });

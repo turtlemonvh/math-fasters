@@ -18,11 +18,11 @@ A multiplication fact shows on the console. Tap the asteroid carrying the right 
 
 Each kid gets a pilot with their own progress. The mission map has one mission per times table and a mixed finale. Finishing a mission unlocks the next and earns 1 to 3 stars.
 
-On the mission map, hold the gear for 2 seconds to open settings for that pilot:
+On the mission map, tap the gear and enter the grown-up password (`faster`) to open settings for that pilot:
 
 - which tables are in play (default 1 to 7, up to 12)
 - speed (slow, medium, fast)
-- unlock all missions
+- which mission the pilot starts at (later ones still unlock by earning stars)
 - a grid showing how the pilot is doing on every fact
 
 Progress is saved in the browser on each device. Nothing is sent anywhere, and progress does not move between devices.
