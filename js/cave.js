@@ -3,6 +3,7 @@
 import * as L from './logic.js';
 import { sfx } from './audio.js';
 import { drawFlames, flameLevel } from './fx.js';
+import { renderScale, createMonitor } from './perf.js';
 
 const C = { amber: '#ffb84d', teal: '#4fd6c4', coral: '#ff7a6b', ink: '#eef0fb', panel: '#1e2648', line: '#34407a', deep: '#0c1024', rock: '#2a335e' };
 const FONT = '"Chakra Petch","Trebuchet MS",sans-serif';
@@ -25,6 +26,7 @@ export function createCaveGame(canvas, opts) {
   let shipY = 0.5, targetY = 0.5, scroll = 0; // ship position as a fraction of the flyable height
   let particles = [], popups = [], shake = 0;
   let paused = false, stopped = false, raf = 0, last = 0;
+  const monitor = createMonitor(() => resize());
   const stars = Array.from({ length: 50 }, () => ({ x: Math.random(), y: Math.random(), z: 0.3 + Math.random() * 0.7 }));
 
   // geometry: the cave has a rocky band top and bottom; lanes split the space between
@@ -38,7 +40,7 @@ export function createCaveGame(canvas, opts) {
 
   function resize() {
     const rect = canvas.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = renderScale();
     W = rect.width; H = rect.height;
     canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -235,6 +237,7 @@ export function createCaveGame(canvas, opts) {
 
   function frame(now) {
     if (stopped) return;
+    monitor(now - last);
     const dt = Math.min(0.05, (now - last) / 1000 || 0);
     last = now;
     if (!paused) update(dt);

@@ -3,6 +3,7 @@
 let ac = null;
 let enabled = true;
 let rich = false;
+const noiseCache = new Map();
 
 export function setSound(on) { enabled = !!on; }
 export function setRich(on) { rich = !!on; }
@@ -36,8 +37,13 @@ function noise(o) {
   if (!enabled || !ac) return;
   try {
     const t = ac.currentTime + (o.at || 0), n = Math.max(1, Math.floor(ac.sampleRate * o.dur));
-    const buf = ac.createBuffer(1, n, ac.sampleRate), d = buf.getChannelData(0);
-    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n) ** 2;
+    let buf = noiseCache.get(n); // filling a buffer sample by sample is slow, so each length is made once
+    if (!buf) {
+      buf = ac.createBuffer(1, n, ac.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n) ** 2;
+      noiseCache.set(n, buf);
+    }
     const src = ac.createBufferSource(), g = ac.createGain();
     src.buffer = buf; g.gain.value = o.vol || 0.25;
     if (o.kind) {

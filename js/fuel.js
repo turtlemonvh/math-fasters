@@ -3,6 +3,7 @@
 import * as L from './logic.js';
 import { sfx } from './audio.js';
 import { drawFlames, flameLevel } from './fx.js';
+import { renderScale, createMonitor } from './perf.js';
 
 const C = { amber: '#ffb84d', teal: '#4fd6c4', coral: '#ff7a6b', ink: '#eef0fb', panel: '#1e2648', line: '#34407a', deep: '#0c1024' };
 const FONT = '"Chakra Petch","Trebuchet MS",sans-serif';
@@ -22,6 +23,7 @@ export function createFuelGame(canvas, opts) {
   let clock = 0, p = 0, dur = 9, cur = null, typed = '', marks = [];
   let particles = [], popups = [], laser = null, shake = 0, lift = 0;
   let paused = false, stopped = false, raf = 0, last = 0;
+  const monitor = createMonitor(() => resize());
   const stars = Array.from({ length: 70 }, () => ({ x: Math.random(), y: Math.random(), z: 0.3 + Math.random() * 0.7 }));
 
   keypad.innerHTML = KEYS.map(k => `<button type="button" class="key${k.length > 1 ? ' fn' : ''}" data-k="${k}" aria-label="${k === 'back' ? 'Delete' : k === 'skip' ? 'Show me the answer' : k}">${k === 'back' ? '⌫' : k === 'skip' ? '?' : k}</button>`).join('');
@@ -38,7 +40,7 @@ export function createFuelGame(canvas, opts) {
 
   function resize() {
     const rect = canvas.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = renderScale();
     W = rect.width; H = rect.height;
     canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -238,6 +240,7 @@ export function createFuelGame(canvas, opts) {
 
   function frame(now) {
     if (stopped) return;
+    monitor(now - last);
     const dt = Math.min(0.05, (now - last) / 1000 || 0);
     last = now;
     if (!paused) update(dt);

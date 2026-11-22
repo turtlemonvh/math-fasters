@@ -1,7 +1,8 @@
 // Asteroid Blast: the canvas scene. Rules come from logic.js; this file is drawing, timing and input.
 import * as L from './logic.js';
 import { sfx } from './audio.js';
-import { drawRocky, numberPlate, drawFlames, flameLevel, makeChunks, drawChunks } from './fx.js';
+import { drawRocky, numberPlate, drawFlames, flameLevel, makeChunks, drawChunks, makeSprite, drawSprite } from './fx.js';
+import { renderScale, createMonitor } from './perf.js';
 
 const C = { amber: '#ffb84d', teal: '#4fd6c4', coral: '#ff7a6b', ink: '#eef0fb', rock: '#5a628f', rockEdge: '#8b94c9' };
 const FONT = '"Chakra Petch","Trebuchet MS",sans-serif';
@@ -18,6 +19,8 @@ export function createGame(canvas, opts) {
   const g = session.g;
   const fx = opts.fx || {};
   let booms = [];
+  const sprites = Array.from({ length: 4 }, () => ({ rock: null, label: null })); // one reusable pair of canvases per lane
+  const monitor = createMonitor(() => resize());
   let W = 0, H = 0, dead = false, completed = false;
   let state = 'banner', timer = 1.6, banner = 'Wave 1';
   let clock = 0, p = 0, dur = 9, cur = null;
@@ -33,7 +36,7 @@ export function createGame(canvas, opts) {
 
   function resize() {
     const rect = canvas.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = renderScale();
     W = rect.width; H = rect.height;
     canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -138,6 +141,16 @@ export function createGame(canvas, opts) {
     else if (state === 'over') { stopped = true; opts.onEnd(session.result(completed)); }
   }
 
+  function drawNumber(x, v, rad) {
+    const txt = String(v);
+    x.font = `700 ${Math.round(rad * (txt.length > 2 ? 0.66 : 0.86))}px ${FONT}`;
+    x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.lineWidth = 5; x.strokeStyle = 'rgba(12,16,36,.75)'; x.lineJoin = 'round';
+    x.strokeText(txt, 0, 2);
+    x.fillStyle = '#fff';
+    x.fillText(txt, 0, 2);
+  }
+
   function drawRock(r) {
     const x = rockX(r), y = rockY(r), rad = R();
     ctx.save();
@@ -154,15 +167,29 @@ export function createGame(canvas, opts) {
     const gold = cur.bonus && r.mode === 'fall'; // bonus asteroids glow gold
     ctx.fillStyle = r.mode === 'bad' ? '#8f4a55' : r.mode === 'answer' ? '#2f7f7a' : gold ? '#8a6420' : C.rock;
     if (fx.rocky) {
-      const tint = r.mode === 'bad' ? ['#f0b0a8', '#a04c52', '#3a1c2a'] : r.mode === 'answer' ? ['#b8f0e6', '#2f8f86', '#123a40'] : gold ? ['#ffe9b0', '#c9902e', '#4a3312'] : null;
-      drawRocky(ctx, rad, r.shape, r.rot, tint);
-      if (r.mode === 'answer' || r.mode === 'bad' || gold) { // keep the state outline on top of the texture
-        ctx.lineWidth = r.mode === 'answer' ? 5 + Math.sin(clock * 10) * 2 : 4;
-        ctx.strokeStyle = r.mode === 'bad' ? C.coral : r.mode === 'answer' ? C.teal : C.amber;
-        ctx.stroke();
+      // The textured rock, its number plate and its number are drawn once per look into one sprite,
+      // then stamped unrotated each frame: a straight copy is the cheapest thing a canvas can do.
+      ctx.restore(); // drop the rotation: the light on a rocky asteroid should not spin with it
+      const look = r.mode === 'bad' ? 'bad' : r.mode === 'answer' ? 'answer' : gold ? 'gold' : 'plain';
+      const k = `${look}|${r.v}|${rad}|${renderScale()}`;
+      if (r.rockKey !== k) {
+        r.rockKey = k;
+        const tint = look === 'bad' ? ['#f0b0a8', '#a04c52', '#3a1c2a'] : look === 'answer' ? ['#b8f0e6', '#2f8f86', '#123a40'] : look === 'gold' ? ['#ffe9b0', '#c9902e', '#4a3312'] : null;
+        r.rockSprite = makeSprite(rad * 2.6, renderScale(), x => {
+          drawRocky(x, rad, r.shape, 0, tint);
+          if (look !== 'plain') { x.lineWidth = 4; x.strokeStyle = look === 'bad' ? C.coral : look === 'answer' ? C.teal : C.amber; x.stroke(); }
+          numberPlate(x, rad);
+          drawNumber(x, r.v, rad);
+        }, sprites[r.lane].rock);
+        sprites[r.lane].rock = r.rockSprite;
+      }
+      drawSprite(ctx, r.rockSprite);
+      if (look === 'answer') { // pulsing ring around the right answer
+        ctx.strokeStyle = C.teal; ctx.lineWidth = 3 + Math.sin(clock * 10) * 2;
+        ctx.beginPath(); ctx.arc(0, 0, rad * 1.12, 0, Math.PI * 2); ctx.stroke();
       }
       ctx.restore();
-      numberPlate(ctx, rad);
+      return;
     } else {
     ctx.fill();
     ctx.lineWidth = r.mode === 'answer' ? 5 + Math.sin(clock * 10) * 2 : gold ? 5 : 3;
@@ -174,13 +201,14 @@ export function createGame(canvas, opts) {
     }
     ctx.restore();
     }
-    const txt = String(r.v);
-    ctx.font = `700 ${Math.round(rad * (txt.length > 2 ? 0.66 : 0.86))}px ${FONT}`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(12,16,36,.75)'; ctx.lineJoin = 'round';
-    ctx.strokeText(txt, 0, 2);
-    ctx.fillStyle = '#fff';
-    ctx.fillText(txt, 0, 2);
+    // The number is a sprite too: outlined text is slow to redraw every frame.
+    const lk = `${r.v}|${rad}|${renderScale()}`;
+    if (r.labelKey !== lk) {
+      r.labelKey = lk;
+      r.labelSprite = makeSprite(rad * 2.2, renderScale(), x => drawNumber(x, r.v, rad), sprites[r.lane].label);
+      sprites[r.lane].label = r.labelSprite;
+    }
+    drawSprite(ctx, r.labelSprite);
     ctx.restore();
   }
 
@@ -254,6 +282,7 @@ export function createGame(canvas, opts) {
 
   function frame(now) {
     if (stopped) return;
+    monitor(now - last);
     const dt = Math.min(0.05, (now - last) / 1000 || 0);
     last = now;
     if (!paused) update(dt);

@@ -1,6 +1,8 @@
 // Optional looks and effects. Each one is switched per pilot in grown-up settings,
 // and the plain versions in the scene files remain the fallback for older devices.
 
+import { isLite, renderScale } from './perf.js';
+
 const C = { amber: '#ffb84d', teal: '#4fd6c4', coral: '#ff7a6b', ink: '#eef0fb', muted: '#a9b1d6', deep: '#0c1024', line: '#34407a' };
 const TAU = Math.PI * 2;
 
@@ -79,17 +81,33 @@ export function numberPlate(ctx, r) {
   ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, r * 0.78, 0, TAU); ctx.fill();
 }
 
+// ---------- sprites: draw something once to a small off-screen canvas, then stamp it each frame ----------
+// Gradients, clipping and text are slow to redo 60 times a second, especially on older tablets.
+// size is in CSS pixels; scale is the render scale. Pass an existing sprite to reuse its canvas.
+export function makeSprite(size, scale, draw, reuse) {
+  const c = reuse?.c || document.createElement('canvas');
+  const px = Math.max(2, Math.ceil(size * scale));
+  c.width = px; c.height = px; // also clears a reused canvas
+  const x = c.getContext('2d');
+  x.setTransform(scale, 0, 0, scale, px / 2, px / 2);
+  draw(x);
+  return { c, size: px / scale };
+}
+export const drawSprite = (ctx, s) => ctx.drawImage(s.c, -s.size / 2, -s.size / 2, s.size, s.size);
+
 // ---------- streak flames: a column of fire rising from (x0, y0), w wide and h tall ----------
 const RND = Array.from({ length: 128 }, (_, i) => ((Math.sin(i * 127.1) * 43758.5453) % 1 + 1) % 1);
+// Plain squares, no glow blending: about as cheap as drawing gets, and it matches the spark particles.
 export function drawFlames(ctx, x0, y0, w, h, n, t) {
   ctx.save();
-  ctx.globalCompositeOperation = 'lighter';
+  n = Math.min(isLite() ? 8 : 18, n);
   for (let i = 0; i < n; i++) {
     const a = RND[i % 128], life = (t * (0.9 + a) + RND[(i + 50) % 128]) % 1;
     const x = x0 + RND[(i + 20) % 128] * w + Math.sin(t * 5 + i) * 3, y = y0 - life * h * (0.6 + 0.4 * a);
     ctx.globalAlpha = (1 - life) * 0.85;
     ctx.fillStyle = life < 0.35 ? '#ffe2a0' : life < 0.65 ? C.amber : C.coral;
-    ctx.beginPath(); ctx.arc(x, y, Math.max(0.5, (1 - life) * Math.abs(h) * 0.2 + 1), 0, TAU); ctx.fill();
+    const sz = Math.max(2, (1 - life) * Math.abs(h) * 0.34 + 2);
+    ctx.fillRect(x - sz / 2, y - sz / 2, sz, sz);
   }
   ctx.restore();
 }
@@ -102,23 +120,34 @@ export function makeChunks(x, y, r) {
     x, y, r, t: 0, life: 1.1,
     bits: Array.from({ length: 9 }, (_, i) => ({
       a: i / 9 * TAU + Math.random(), d: r * (0.9 + 1.9 * Math.random()), size: r * (0.16 + 0.2 * Math.random()),
-      spin: (2 + 5 * Math.random()) * (i % 2 ? 1 : -1), shape: Array.from({ length: 8 }, () => 0.8 + Math.random() * 0.28),
+      spin: (2 + 5 * Math.random()) * (i % 2 ? 1 : -1), img: i % 3,
     })),
   };
 }
+// Three chunk shapes, drawn once and reused for every explosion.
+let chunkSprites = null;
+const CHUNK = 14;
+function chunkImages() {
+  return chunkSprites || (chunkSprites = [0, 1, 2].map(k => makeSprite(CHUNK * 2.6, renderScale(), x =>
+    drawRocky(x, CHUNK, Array.from({ length: 8 }, (_, i) => 0.8 + RND[(k * 9 + i) % 128] * 0.28), 0))));
+}
 export function drawChunks(ctx, c) {
+  const imgs = chunkImages();
   const e = c.t, out = 1 - Math.exp(-2.6 * e), fade = Math.max(0, Math.min(1, 1 - (e - 0.5) / 0.6));
   ctx.save();
-  ctx.globalAlpha = Math.max(0, 1 - e * 5); ctx.fillStyle = '#fff';
-  ctx.beginPath(); ctx.arc(c.x, c.y, c.r * (0.8 + e * 5), 0, TAU); ctx.fill();
+  if (e < 0.2) { // brief flash, kept small: big see-through fills are costly
+    ctx.globalAlpha = 1 - e * 5; ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(c.x, c.y, c.r * (0.7 + e * 2.5), 0, TAU); ctx.fill();
+  }
   ctx.globalAlpha = Math.max(0, 1 - e / 0.55); ctx.strokeStyle = C.amber; ctx.lineWidth = 4;
   ctx.beginPath(); ctx.arc(c.x, c.y, c.r * (0.6 + out * 2.4), 0, TAU); ctx.stroke();
-  for (const b of c.bits) {
+  for (const b of isLite() ? [] : c.bits) {
     ctx.save();
     ctx.globalAlpha = fade;
     ctx.translate(c.x + Math.cos(b.a) * b.d * out, c.y + Math.sin(b.a) * b.d * out + e * e * 60);
     ctx.rotate(e * b.spin);
-    drawRocky(ctx, b.size, b.shape, e * b.spin);
+    ctx.scale(b.size / CHUNK, b.size / CHUNK);
+    drawSprite(ctx, imgs[b.img]);
     ctx.restore();
   }
   ctx.restore();
@@ -152,5 +181,8 @@ export function starChartSvg(items, accent = C.amber) {
     if (m.next) s += `<path d="M${x} ${y - r - 30}l11 20h-22z" fill="${accent}"/><circle cx="${x}" cy="${y - r - 17}" r="3" fill="${C.deep}"/>`;
     s += '</g>';
   });
-  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="group" aria-label="Mission star chart">${s}</svg>`;
+  // data-next: where the next mission sits, as percentages, so the page can lay an animated ring over it
+  const ni = items.findIndex(m => m.next);
+  const at = ni >= 0 ? ` data-next="${(pos[ni][0] / W * 100).toFixed(2)},${(pos[ni][1] / H * 100).toFixed(2)}"` : '';
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}"${at} role="group" aria-label="Mission star chart">${s}</svg>`;
 }

@@ -58,6 +58,7 @@ npm test    # runs the rule tests (Node 20+)
 - `js/logic.js`: game rules (missions, fact picking, decoys, scoring, the mission session). Pure functions, covered by `test/`.
 - `js/play.js`: the Asteroid Blast canvas scene. `js/fuel.js`: the Fuel-Up scene. `js/cave.js`: the Cave Flight scene.
 - `js/fx.js`: optional looks and effects (robot, rocky asteroids, flames, chunks, star chart).
+- `js/perf.js`: lowers the drawing resolution, then thins the optional effects, when a device cannot keep up.
 - `js/main.js`: screens and wiring. `js/store.js`: saved profiles. `js/audio.js`: synthesised sounds.
 - `docs/plan/`: the original plan and mock-ups.
 

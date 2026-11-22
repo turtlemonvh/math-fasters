@@ -29,7 +29,11 @@ let pilot = null, missions = [], mission = null, game = null, newColor = COLORS[
 // grown-up screen state
 let setTab = 'settings', period = { kind: 'week', offset: 0 }, viewOp = null;
 
-const persist = () => save(data);
+// Saving rewrites everything, so during play it is batched: at most once every couple of seconds,
+// and always when a mission ends, the game is paused or the app goes to the background.
+let saveTimer = 0;
+const persist = () => { clearTimeout(saveTimer); saveTimer = 0; save(data); };
+const persistSoon = () => { if (!saveTimer) saveTimer = setTimeout(persist, 2000); };
 const opsOf = p => (p.settings.ops?.length ? ALL_OPS.filter(o => p.settings.ops.includes(o)) : ['mul']);
 // What the pilot last chose on the map: which kind of facts and which game.
 function last() {
@@ -98,13 +102,15 @@ function renderMap() {
   const list = $('#mission-list');
   list.classList.toggle('chartmode', fx.chart);
   list.innerHTML = fx.chart
-    ? `<div class="chartbox">${starChartSvg(items, OP_COLOR[op])}</div>` + free
+    ? `<div class="chartbox"><div class="chartwrap">${starChartSvg(items, OP_COLOR[op])}<div class="ring" hidden></div></div></div>` + free
     : items.map(m => `<button class="btn mission${m.next ? ' next' : ''}" data-act="play-mission" data-id="${m.id}" ${m.open ? '' : 'disabled'}>
       <span class="num">MISSION ${m.i + 1}</span><span>${m.open ? '' : '🔒 '}${m.name}</span><span class="facts">${m.label}</span><span class="stars">${starRow(m.stars)}</span></button>`).join('') + free;
   show('s-map');
   if (fx.chart) {
     // The chart scrolls inside its own window, centred on the next mission, so the page itself never jumps.
     const box = list.querySelector('.chartbox');
+    const at = list.querySelector('.chart').dataset.next?.split(','), ring = list.querySelector('.ring');
+    if (at) { ring.style.left = at[0] + '%'; ring.style.top = at[1] + '%'; ring.hidden = false; }
     const target = list.querySelector('.pulse') || [...list.querySelectorAll('.planet:not(.locked)')].pop();
     if (box && target) {
       const t = target.getBoundingClientRect(), b = box.getBoundingClientRect();
@@ -171,7 +177,7 @@ function startMission(id) {
       else c.textContent = text;
       setBuddy(mood === 'good' ? 'cheer' : mood === 'bad' ? 'oops' : 'ready');
     },
-    onSave: persist,
+    onSave: persistSoon,
     onEnd: finishMission,
   });
   window.__game = game;
@@ -180,6 +186,7 @@ function startMission(id) {
 function pauseGame() {
   if (!game || !$('#s-play').classList.contains('active')) return;
   game.pause();
+  persist();
   $('#pause').hidden = false;
 }
 
@@ -486,7 +493,8 @@ $('#new-form').addEventListener('submit', e => {
   gear.addEventListener('keyup', cancel);
 }
 
-document.addEventListener('visibilitychange', () => { if (document.hidden) pauseGame(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { pauseGame(); if (saveTimer) persist(); } });
+window.addEventListener('pagehide', () => { if (saveTimer) persist(); });
 window.addEventListener('keydown', e => { if (e.key === 'Escape') pauseGame(); });
 
 renderPilots();
