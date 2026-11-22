@@ -46,7 +46,7 @@ export function createGame(canvas, opts) {
       return;
     }
     const fact = step.fact;
-    cur = { fact, ans: L.answerOf(fact), text: L.factText(fact), start: clock };
+    cur = { fact, ans: L.answerOf(fact), text: L.factText(fact), start: clock, bonus: step.bonus };
     rocks = L.makeChoices(fact).map((v, lane) => ({
       v, lane, po: Math.random() * 0.06, phase: Math.random() * 6, rot: Math.random() * 6,
       spin: (Math.random() - 0.5) * 0.8, shape: Array.from({ length: 10 }, () => 0.84 + Math.random() * 0.22),
@@ -75,7 +75,8 @@ export function createGame(canvas, opts) {
     laser = { x, y, t: 0 };
     shipAngle = Math.atan2(x - W / 2, (H - shipZone() / 2) - y);
     burst(x, y, C.amber); burst(x, y, C.rockEdge, 10);
-    popups.push({ x, y, text: `+${pts}`, t: 0 });
+    popups.push({ x, y, text: g.credit === 2 ? `DOUBLE! +${pts}` : `+${pts}`, t: 0 });
+    if (g.credit === 2) burst(x, y, C.amber, 30);
     rock.mode = 'gone';
     rocks.forEach(r => { if (r !== rock) r.mode = 'away'; });
     sfx.laser(); sfx.boom();
@@ -144,10 +145,11 @@ export function createGame(canvas, opts) {
       ctx[i ? 'lineTo' : 'moveTo'](Math.cos(a) * rad * f, Math.sin(a) * rad * f);
     });
     ctx.closePath();
-    ctx.fillStyle = r.mode === 'bad' ? '#8f4a55' : r.mode === 'answer' ? '#2f7f7a' : C.rock;
+    const gold = cur.bonus && r.mode === 'fall'; // bonus asteroids glow gold
+    ctx.fillStyle = r.mode === 'bad' ? '#8f4a55' : r.mode === 'answer' ? '#2f7f7a' : gold ? '#8a6420' : C.rock;
     ctx.fill();
-    ctx.lineWidth = r.mode === 'answer' ? 5 + Math.sin(clock * 10) * 2 : 3;
-    ctx.strokeStyle = r.mode === 'bad' ? C.coral : r.mode === 'answer' ? C.teal : C.rockEdge;
+    ctx.lineWidth = r.mode === 'answer' ? 5 + Math.sin(clock * 10) * 2 : gold ? 5 : 3;
+    ctx.strokeStyle = r.mode === 'bad' ? C.coral : r.mode === 'answer' ? C.teal : gold ? C.amber : C.rockEdge;
     ctx.stroke();
     ctx.fillStyle = 'rgba(0,0,0,.16)';
     for (const [cx, cy, cr] of [[-0.45, -0.4, 0.16], [0.5, 0.35, 0.12], [-0.3, 0.55, 0.09]]) {

@@ -44,7 +44,7 @@
     <header class="bar">
       <button class="btn ghost small" data-act="back-pilots">‹ Pilots</button>
       <div id="map-pilot" class="who"></div>
-      <button id="gear" class="gear" data-act="gate" aria-label="Grown-up settings">
+      <button id="gear" class="gear" aria-label="Grown-up settings: hold for 2 seconds">
         <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.6 7.6 0 0 0-1.7-1L15 3.5h-4l-.4 2.5a7.6 7.6 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1c.5.4 1.1.8 1.7 1l.4 2.5h4l.4-2.5c.6-.2 1.2-.6 1.7-1l2.4 1 2-3.4-2.2-1.6zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>
       </button>
     </header>
@@ -52,7 +52,7 @@
     <div id="map-scenes" class="chips center"></div>
     <h2>Choose a mission</h2>
     <div id="mission-list" class="mission-list"></div>
-    <p class="hint">Grown-ups: tap the gear for settings.</p>
+    <p class="hint">Grown-ups: hold the gear for 2 seconds to change settings.</p>
   </section>
 
   <section id="s-play" class="screen">
@@ -89,19 +89,6 @@
         <button id="free-go" class="btn primary" data-act="play-mission" data-id="free">Start</button>
       </div>
     </div>
-  </section>
-
-  <section id="s-gate" class="screen">
-    <form id="gate-form" class="panel center" autocomplete="off">
-      <h2>Grown-ups only</h2>
-      <label for="gate-pass">Password</label>
-      <input id="gate-pass" type="password" autocapitalize="none" autocorrect="off" spellcheck="false">
-      <p id="gate-msg" class="muted" aria-live="polite"></p>
-      <div class="row">
-        <button type="button" class="btn ghost" data-act="to-map">Cancel</button>
-        <button type="submit" class="btn primary">Open settings</button>
-      </div>
-    </form>
   </section>
 
   <section id="s-settings" class="screen">

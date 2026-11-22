@@ -151,3 +151,25 @@ test('division follows the tables in play', () => {
   assert.equal(L.fkey({ a: 42, b: 7, op: 'div' }), '42/7');
   assert.equal(L.gridFor('div', [6, 7]).rows[1].facts[2].a, 21);
 });
+
+test('speed bonus: quick answers earn double-credit questions and a shorter wave', () => {
+  const T = [1, 2, 3, 4, 5, 6, 7];
+  const pools = L.missionPools(L.buildMissions(T)[2], T);
+  const s = L.createSession({ pools, stats: {} });
+  const seq = [];
+  let step;
+  while ((step = s.advance()).type === 'fact') { seq.push(step.bonus ? 'B' : 'n'); s.correct(step.fact, 500, 0.9); }
+  assert.equal(seq.join(''), 'nnnBnnBn'); // 3 + 2 + 2 + 2 + 1 = 10 credits in 8 questions
+  assert.equal(step.type, 'wave');
+  // a slow answer on a bonus question counts once; a miss resets the run
+  const t = L.createSession({ pools, stats: {} });
+  for (let i = 0; i < 3; i++) t.correct(t.advance().fact, 500, 0.9);
+  const b = t.advance();
+  assert.equal(b.bonus, true);
+  t.correct(b.fact, 5000, 0.2);
+  assert.equal(t.g.q, 4);
+  t.correct(t.advance().fact, 500, 0.9);
+  t.miss(t.advance().fact);
+  for (let i = 0; i < 2; i++) { const x = t.advance(); assert.equal(x.bonus, false); t.correct(x.fact, 500, 0.9); }
+  assert.equal(t.advance().bonus, false); // back to needing three
+});

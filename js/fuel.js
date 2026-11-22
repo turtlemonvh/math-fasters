@@ -62,7 +62,7 @@ export function createFuelGame(canvas, opts) {
       sfx.wave(); sfx.boom(); opts.onFact('Lift-off! Shield restored!', 'good'); hud();
       return;
     }
-    cur = { fact: step.fact, ans: L.answerOf(step.fact), text: L.factText(step.fact), start: clock };
+    cur = { fact: step.fact, ans: L.answerOf(step.fact), text: L.factText(step.fact), start: clock, bonus: step.bonus };
     typed = ''; p = 0; dur = L.fallSeconds(mission.speed, opts.kidSpeed, g.wave);
     state = 'ask';
     showFact(); hud();
@@ -70,11 +70,11 @@ export function createFuelGame(canvas, opts) {
 
   function right() {
     const pts = session.correct(cur.fact, (clock - cur.start) * 1000, 1 - p);
-    marks.push(true);
+    for (let i = 0; i < g.credit; i++) marks.push(true);
     const c = cometAt(p);
     laser = { x: c.x, y: c.y, t: 0 };
     burst(c.x, c.y, C.amber); burst(c.x, c.y, C.coral, 10);
-    popups.push({ x: c.x, y: c.y, text: `+${pts}`, t: 0 });
+    popups.push({ x: Math.min(c.x, W - 110), y: c.y, text: g.credit === 2 ? `DOUBLE! +${pts}` : `+${pts}`, t: 0 });
     sfx.laser(); sfx.boom();
     state = 'hit'; timer = 0.6;
     opts.onFact(`${cur.text} = ${cur.ans}`, 'good');
@@ -187,6 +187,7 @@ export function createFuelGame(canvas, opts) {
     ctx.strokeStyle = grad; ctx.lineWidth = r * 1.4; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.lineTo(b.x, b.y); ctx.stroke();
     ctx.fillStyle = C.coral; ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, Math.PI * 2); ctx.fill();
+    if (cur.bonus) { ctx.strokeStyle = C.amber; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(c.x, c.y, r * 1.6, 0, Math.PI * 2); ctx.stroke(); } // bonus comet wears a gold ring
     ctx.fillStyle = C.amber; ctx.beginPath(); ctx.arc(c.x, c.y, r * 0.55, 0, Math.PI * 2); ctx.fill();
   }
 

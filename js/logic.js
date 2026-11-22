@@ -4,6 +4,11 @@ export const FAST_MS = 4000; // a right answer at or under this (on average) cou
 export const WAVES = 3;
 export const PER_WAVE = 10;
 export const MAX_SHIELDS = 3;
+// Speed bonus: answer with at least this much of the time left and it counts as quick.
+// Three quick answers in a row earn a bonus question; after that, two in a row. A miss resets to three.
+export const QUICK = 0.7;
+export const BONUS_FIRST = 3;
+export const BONUS_NEXT = 2;
 
 // A fact is { a, b, op }. op is 'mul' (default), 'div', 'add' or 'sub'.
 export const OPS = {
@@ -204,8 +209,9 @@ export function isUnlocked(missions, i, progress, through = 0) {
 
 // One mission's run: which fact comes next, shields, waves, score. Scenes draw it and feed it answers.
 export function createSession({ pools, stats, rng = Math.random }) {
-  const g = { wave: 1, q: 0, score: 0, streak: 0, shields: MAX_SHIELDS, asked: 0, right: 0, misses: [] };
+  const g = { wave: 1, q: 0, score: 0, streak: 0, shields: MAX_SHIELDS, asked: 0, right: 0, misses: [], bonus: false, credit: 1 };
   let pending = [], recent = [];
+  let run = 0, need = BONUS_FIRST; // quick answers in a row, and how many earn the next bonus question
   return {
     g,
     // -> { type: 'fact', fact } | { type: 'wave' } (new wave started, one shield restored) | { type: 'done' }
@@ -221,13 +227,19 @@ export function createSession({ pools, stats, rng = Math.random }) {
       const fact = i >= 0 ? pending.splice(i, 1)[0].fact : pickFact(pools, stats, recent, rng);
       recent = [...recent, fkey(fact)].slice(-3);
       g.asked++;
-      return { type: 'fact', fact };
+      g.bonus = run >= need;
+      if (g.bonus) { run = 0; need = BONUS_NEXT; }
+      return { type: 'fact', fact, bonus: g.bonus };
     },
     // timeLeft: fraction of the time still remaining. Returns the points scored.
     correct(fact, ms, timeLeft) {
       recordAnswer(stats, fkey(fact), true, ms);
-      g.streak++; g.right++; g.q++;
-      const pts = scoreFor(timeLeft, g.streak);
+      const quick = timeLeft >= QUICK;
+      g.credit = g.bonus && quick ? 2 : 1; // a quick right answer on a bonus question counts as two
+      run = g.bonus ? 0 : quick ? run + 1 : 0;
+      g.streak++; g.right++;
+      g.q = Math.min(PER_WAVE, g.q + g.credit);
+      const pts = scoreFor(timeLeft, g.streak) * g.credit;
       g.score += pts;
       return pts;
     },
@@ -235,6 +247,7 @@ export function createSession({ pools, stats, rng = Math.random }) {
     miss(fact) {
       recordAnswer(stats, fkey(fact), false, 0);
       g.streak = 0; g.shields--; g.q++;
+      run = 0; need = BONUS_FIRST; g.credit = 1;
       g.misses.push(fact);
       pending.push({ fact, due: 2 + (rng() < 0.5 ? 1 : 0) });
       return g.shields <= 0;

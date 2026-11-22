@@ -123,12 +123,16 @@ function startMission(id) {
       $('#hud-wave').textContent = `${scene === 'fuel' ? 'Stage' : 'Wave'} ${g.wave} · ${Math.min(g.q + 1, L.PER_WAVE)}/${L.PER_WAVE}`;
       $('#hud-score').textContent = g.score.toLocaleString();
       $('#hud-mult').textContent = g.mult > 1 ? `×${g.mult}` : '';
+      $('#s-play').classList.toggle('bonus', !!g.bonus);
       $('#hud-shields').innerHTML = [0, 1, 2].map(i => shield(i < g.shields)).join('');
     },
     onFact(text, mood) {
       const c = $('#console');
-      c.textContent = text;
       c.className = 'console ' + mood;
+      const cut = text.lastIndexOf('= ');
+      // After a miss, box the right answer so it stands out.
+      if (mood === 'bad' && cut > 0) c.innerHTML = `${esc(text.slice(0, cut + 2))}<span class="ans">${esc(text.slice(cut + 2))}</span>`;
+      else c.textContent = text;
     },
     onSave: persist,
     onEnd: finishMission,
@@ -227,7 +231,6 @@ function renderSettings() {
 // ---------- actions ----------
 const actions = {
   'new-pilot': renderNew,
-  gate: () => { $('#gate-pass').value = ''; $('#gate-msg').textContent = ''; show('s-gate'); $('#gate-pass').focus(); },
   'back-pilots': () => { pilot = null; renderPilots(); },
   'pick-color': el => { newColor = el.dataset.c; document.querySelectorAll('.swatch').forEach(s => s.setAttribute('aria-pressed', s.dataset.c === newColor)); },
   'pick-pilot': el => { pilot = data.profiles.find(p => p.id === el.dataset.id); if (pilot) renderMap(); },
@@ -292,13 +295,23 @@ $('#new-form').addEventListener('submit', e => {
   renderMap();
 });
 
-// Grown-up gate: a simple password keeps kids out of settings. It is not real security.
-const PARENT_PASSWORD = 'faster';
-$('#gate-form').addEventListener('submit', e => {
-  e.preventDefault();
-  if ($('#gate-pass').value.trim().toLowerCase() === PARENT_PASSWORD) { $('#gate-pass').blur(); renderSettings(); }
-  else { $('#gate-msg').textContent = 'That is not the password. Try again.'; $('#gate-pass').value = ''; }
-});
+// Grown-up gate: hold the gear for 2 seconds.
+{
+  const gear = $('#gear');
+  let t = 0;
+  const cancel = () => { clearTimeout(t); gear.classList.remove('holding'); };
+  gear.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    cancel();
+    gear.classList.add('holding');
+    t = setTimeout(() => { cancel(); unlock(); renderSettings(); }, 2000);
+  });
+  for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) gear.addEventListener(ev, cancel);
+  gear.addEventListener('contextmenu', e => e.preventDefault());
+  // Keyboard users: hold Enter or Space.
+  gear.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) gear.dispatchEvent(new PointerEvent('pointerdown')); });
+  gear.addEventListener('keyup', cancel);
+}
 
 document.addEventListener('visibilitychange', () => { if (document.hidden) pauseGame(); });
 window.addEventListener('keydown', e => { if (e.key === 'Escape') pauseGame(); });

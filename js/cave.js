@@ -1,4 +1,5 @@
 // Cave Flight: steer the ship up and down and fly through the gate showing the right answer.
+// Tap the right side of the screen to boost: the sooner the boost, the bigger the speed bonus.
 import * as L from './logic.js';
 import { sfx } from './audio.js';
 
@@ -6,6 +7,8 @@ const C = { amber: '#ffb84d', teal: '#4fd6c4', coral: '#ff7a6b', ink: '#eef0fb',
 const FONT = '"Chakra Petch","Trebuchet MS",sans-serif';
 const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 const LANES = 3;
+const BOOST_SPEED = 2.2; // while boosting, the wall crosses the whole screen in under half a second
+const BOOST_ZONE = 0.55;  // taps to the right of this fraction of the width boost; taps to the left steer
 
 /**
  * opts: { mission, session, kidSpeed, shipColor, onHud(state), onFact(text, mood), onSave(), onEnd(result) }
@@ -17,7 +20,7 @@ export function createCaveGame(canvas, opts) {
   const g = session.g;
   let W = 0, H = 0, dead = false, completed = false;
   let state = 'banner', timer = 1.8, banner = 'Wave 1';
-  let clock = 0, p = 0, dur = 6, cur = null, gates = [], wallMode = '';
+  let clock = 0, p = 0, dur = 6, cur = null, gates = [], wallMode = '', boostAt = null;
   let shipY = 0.5, targetY = 0.5, scroll = 0; // ship position as a fraction of the flyable height
   let particles = [], popups = [], shake = 0;
   let paused = false, stopped = false, raf = 0, last = 0;
@@ -59,11 +62,12 @@ export function createCaveGame(canvas, opts) {
       return;
     }
     const fact = step.fact, ans = L.answerOf(fact);
-    cur = { fact, ans, text: L.factText(fact), start: clock };
+    cur = { fact, ans, text: L.factText(fact), start: clock, bonus: step.bonus };
+    boostAt = null;
     const decoys = L.makeChoices(fact).filter(v => v !== ans).slice(0, LANES - 1);
     gates = L.shuffle([ans, ...decoys]);
     p = 0; wallMode = '';
-    dur = L.fallSeconds(mission.speed, opts.kidSpeed, g.wave) * 0.5;
+    dur = L.fallSeconds(mission.speed, opts.kidSpeed, g.wave) * 0.6;
     state = 'fly';
     opts.onFact(`${cur.text} = ?`, '');
     hud();
@@ -72,10 +76,11 @@ export function createCaveGame(canvas, opts) {
   function arrive() {
     const lane = laneOfShip();
     if (gates[lane] === cur.ans) {
-      // Reward settling early is not possible to measure fairly, so the time bonus is fixed.
-      const pts = session.correct(cur.fact, (clock - cur.start) * 1000, 0.5);
+      // Speed bonus comes from how early the pilot boosted. No boost means no speed bonus.
+      const decided = boostAt === null ? 1 : boostAt;
+      const pts = session.correct(cur.fact, decided * dur * 1000, 1 - decided);
       burst(shipX(), shipPx(), C.teal, 16);
-      popups.push({ x: shipX() + 40, y: shipPx(), text: `+${pts}`, t: 0 });
+      popups.push({ x: shipX() + 70, y: shipPx(), text: g.credit === 2 ? `DOUBLE! +${pts}` : `+${pts}`, t: 0 });
       sfx.laser();
       wallMode = 'pass'; state = 'hit'; timer = 0.55;
       opts.onFact(`${cur.text} = ${cur.ans}`, 'good');
@@ -102,7 +107,8 @@ export function createCaveGame(canvas, opts) {
   function update(dt) {
     clock += dt;
     const moving = state !== 'reveal' && state !== 'over';
-    if (moving) scroll += dt * W * 0.35;
+    const boosting = state === 'fly' && boostAt !== null;
+    if (moving) scroll += dt * W * (boosting ? 1.6 : 0.35);
     for (const s of stars) { if (moving) s.x -= dt * 0.04 * s.z; if (s.x < 0) { s.x = 1; s.y = Math.random(); } }
     shipY += (targetY - shipY) * Math.min(1, dt * 12);
     particles = particles.filter(q => (q.t += dt) < q.life);
@@ -110,7 +116,7 @@ export function createCaveGame(canvas, opts) {
     popups = popups.filter(q => (q.t += dt) < 0.9);
     shake = Math.max(0, shake - dt);
     if (state === 'fly') {
-      p += dt / dur;
+      p += boosting ? dt * BOOST_SPEED : dt / dur;
       if (p >= 1) { p = 1; arrive(); }
       return;
     }
@@ -151,9 +157,10 @@ export function createCaveGame(canvas, opts) {
       const reveal = wallMode === 'crash';
       ctx.globalAlpha = reveal && !isAns ? 0.3 : 1;
       ctx.strokeStyle = reveal ? (isAns ? C.teal : C.coral) : wallMode === 'pass' && isAns ? C.teal : C.amber;
+      const gold = cur.bonus && !wallMode; // bonus gates are filled gold
       ctx.lineWidth = reveal && isAns ? 5 + Math.sin(clock * 10) * 2 : 4;
       ctx.strokeRect(x - w / 2, y0, w, hgt);
-      ctx.fillStyle = 'rgba(12,16,36,.55)'; ctx.fillRect(x - w / 2, y0, w, hgt);
+      ctx.fillStyle = gold ? 'rgba(138,100,32,.75)' : 'rgba(12,16,36,.55)'; ctx.fillRect(x - w / 2, y0, w, hgt);
       const txt = String(v), size = Math.min(lh * 0.5, W * 0.13, 64) * (txt.length > 2 ? 0.8 : 1);
       ctx.font = `700 ${Math.round(size)}px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.lineWidth = 6; ctx.strokeStyle = 'rgba(12,16,36,.85)'; ctx.lineJoin = 'round';
@@ -192,6 +199,13 @@ export function createCaveGame(canvas, opts) {
     ctx.setLineDash([]);
     drawWall();
     drawShip();
+    if (state === 'fly') { // boost hint on the right edge
+      const on = boostAt !== null;
+      ctx.globalAlpha = on ? 1 : 0.55; ctx.fillStyle = on ? C.teal : C.amber;
+      ctx.font = `700 ${Math.round(Math.min(W * 0.045, 22))}px ${FONT}`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+      ctx.fillText(on ? 'BOOST! ▶▶' : 'TAP HERE TO BOOST ▶▶', W - 12, H - edge() - 6);
+      ctx.globalAlpha = 1;
+    }
     for (const q of particles) {
       ctx.globalAlpha = 1 - q.t / q.life; ctx.fillStyle = q.color;
       ctx.fillRect(q.x - q.size / 2, q.y - q.size / 2, q.size, q.size);
@@ -210,7 +224,7 @@ export function createCaveGame(canvas, opts) {
       ctx.fillText(banner, W / 2, H * 0.4);
       if (state === 'banner') {
         ctx.fillStyle = C.ink; ctx.font = `500 ${Math.round(Math.min(W * 0.045, 22))}px ${FONT}`;
-        ctx.fillText(g.wave === 1 ? 'Slide up or down. Fly through the right answer' : 'Faster now!', W / 2, H * 0.4 + size);
+        ctx.fillText(g.wave === 1 ? 'Left side: pick a lane. Right side: boost!' : 'Faster now!', W / 2, H * 0.4 + size);
       }
     }
     ctx.restore();
@@ -224,11 +238,13 @@ export function createCaveGame(canvas, opts) {
     if (!stopped) { draw(); raf = requestAnimationFrame(frame); }
   }
 
+  function boost() { if (state === 'fly' && boostAt === null) { boostAt = p; sfx.laser(); } }
   const steer = lane => { targetY = (Math.max(0, Math.min(LANES - 1, lane)) + 0.5) / LANES; };
   function onPointer(e) {
     if (paused || (e.type === 'pointermove' && e.pointerType === 'mouse' && !e.buttons)) return;
     e.preventDefault();
     const rect = canvas.getBoundingClientRect();
+    if (e.clientX - rect.left > W * BOOST_ZONE) { if (e.type === 'pointerdown') boost(); return; }
     // A touch or click picks the lane under the finger, so the ship always sits squarely in a gate.
     steer(Math.floor((e.clientY - rect.top - edge()) / laneH()));
   }
@@ -238,6 +254,7 @@ export function createCaveGame(canvas, opts) {
     if (e.key === 'ArrowUp') { steer(lane - 1); e.preventDefault(); }
     else if (e.key === 'ArrowDown') { steer(lane + 1); e.preventDefault(); }
     else if (e.key >= '1' && e.key <= String(LANES)) steer(Number(e.key) - 1);
+    else if (e.key === ' ' || e.key === 'ArrowRight') { boost(); e.preventDefault(); }
   }
 
   const ro = new ResizeObserver(resize);
@@ -261,7 +278,7 @@ export function createCaveGame(canvas, opts) {
       canvas.removeEventListener('pointermove', onPointer);
       window.removeEventListener('keydown', onKey);
     },
-    steer,
+    steer, boost,
     debug: () => ({ state, answer: cur?.ans, gates, lane: laneOfShip(), p }),
   };
 }
