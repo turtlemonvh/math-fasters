@@ -50,7 +50,7 @@
     </header>
     <div id="map-ops" class="chips center"></div>
     <div id="map-scenes" class="chips center"></div>
-    <h2>Choose a mission</h2>
+    <h2 id="map-title" class="map-title">Choose a mission</h2>
     <div id="mission-list" class="mission-list"></div>
     <p class="hint">Grown-ups: hold the gear for 2 seconds to change settings.</p>
   </section>
@@ -63,7 +63,7 @@
       <div id="hud-mult" class="hud-mult"></div>
       <div id="hud-shields" class="hud-shields" aria-label="Shields"></div>
     </div>
-    <div class="stage"><canvas id="game"></canvas></div>
+    <div class="stage"><canvas id="game"></canvas><div id="buddy" class="buddy" hidden></div></div>
     <div id="console" class="console" aria-live="polite"></div>
     <div id="keypad" class="keypad" hidden></div>
     <div id="pause" class="overlay" hidden>
@@ -96,6 +96,7 @@
       <h2 id="set-title">Grown-up settings</h2>
       <button class="btn primary small" data-act="settings-done">Done</button>
     </header>
+    <div id="set-tabs" class="chips tabs"></div>
     <div id="settings" class="settings"></div>
   </section>
 

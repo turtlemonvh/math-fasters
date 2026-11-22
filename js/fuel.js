@@ -2,6 +2,7 @@
 // Ten right-or-wrong answers fill the tank, then the rocket lifts off to the next stage.
 import * as L from './logic.js';
 import { sfx } from './audio.js';
+import { drawFlames, flameLevel } from './fx.js';
 
 const C = { amber: '#ffb84d', teal: '#4fd6c4', coral: '#ff7a6b', ink: '#eef0fb', panel: '#1e2648', line: '#34407a', deep: '#0c1024' };
 const FONT = '"Chakra Petch","Trebuchet MS",sans-serif';
@@ -161,6 +162,8 @@ export function createFuelGame(canvas, opts) {
     ctx.fillStyle = C.deep; ctx.beginPath(); ctx.arc(0, h * 0.36, w * 0.24, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = C.teal; ctx.lineWidth = 3; ctx.stroke();
     ctx.fillStyle = C.line; ctx.fillRect(-w * 0.3, h * 0.96, w * 0.6, h * 0.04); // engine
+    const lvl = opts.fx?.flames && state === 'ask' ? flameLevel(g.streak) : 0; // streak flames idle at the engine
+    if (lvl) drawFlames(ctx, -w * 0.25, h, w * 0.5, -h * 0.03 * (2 + lvl), 4 + lvl * 2, clock);
     ctx.restore();
   }
 

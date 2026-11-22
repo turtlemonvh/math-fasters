@@ -2,6 +2,7 @@
 // Tap the right side of the screen to boost: the sooner the boost, the bigger the speed bonus.
 import * as L from './logic.js';
 import { sfx } from './audio.js';
+import { drawFlames, flameLevel } from './fx.js';
 
 const C = { amber: '#ffb84d', teal: '#4fd6c4', coral: '#ff7a6b', ink: '#eef0fb', panel: '#1e2648', line: '#34407a', deep: '#0c1024', rock: '#2a335e' };
 const FONT = '"Chakra Petch","Trebuchet MS",sans-serif';
@@ -177,6 +178,8 @@ export function createCaveGame(canvas, opts) {
     const s = Math.min(22, laneH() * 0.22), x = shipX(), y = shipPx();
     ctx.save(); ctx.translate(x, y);
     ctx.rotate((targetY - shipY) * 1.2);
+    const lvl = opts.fx?.flames ? flameLevel(g.streak) : 0; // streak flames trail behind the ship
+    if (lvl) { ctx.save(); ctx.rotate(Math.PI / 2); drawFlames(ctx, -s * 0.4, s * 0.8, s * 0.8, -s * (1 + lvl * 0.3), 4 + lvl * 3, clock); ctx.restore(); }
     ctx.fillStyle = C.coral;
     ctx.beginPath(); ctx.moveTo(-s * 0.8, -s * 0.4); ctx.lineTo(-s * (1.3 + Math.random() * 0.5), 0); ctx.lineTo(-s * 0.8, s * 0.4); ctx.fill();
     ctx.fillStyle = opts.shipColor || C.amber;

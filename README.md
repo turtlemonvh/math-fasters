@@ -28,13 +28,21 @@ Facts can be multiplication, division, addition or subtraction. A grown-up choos
 
 Each kid gets a pilot with their own progress. Each kind of fact has its own mission map: one mission per number (or pair of numbers) and a mixed finale. Finishing a mission unlocks the next and earns 1 to 3 stars. Free practice lets a pilot pick any numbers, with no stars.
 
-On the mission map, hold the gear for 2 seconds to open settings for that pilot:
+On the mission map, hold the gear for 2 seconds to open the grown-up screen for that pilot. It has three tabs.
+
+**Settings**
 
 - kinds of facts: multiplication, division, addition, subtraction
 - which times tables are in play for multiplication and division (default 1 to 7, up to 12); addition and subtraction use 1 to 10
 - speed (slow, medium, fast)
 - which mission the pilot starts at, per kind of fact (later ones still unlock by earning stars)
-- a grid showing how the pilot is doing on every fact
+- look: Tock the robot co-pilot and rocky asteroids (on to start; turn off for the plain look on older tablets)
+- extra effects, each off to start: rich sounds, streak flames, chunky explosions, star-chart mission map
+- erase progress or delete the pilot, after typing the pilot's name
+
+**Progress**: a grid of every fact, coloured by how well the pilot knows it. View it for a day, a week or all time and page back through earlier days and weeks. Day-by-day history starts from the day this feature first ran on the device.
+
+**Mission log**: every mission played, with score, facts missed and time taken. Copy a text summary or download a CSV spreadsheet.
 
 Progress is saved in the browser on each device. Nothing is sent anywhere, and progress does not move between devices.
 
@@ -49,6 +57,7 @@ npm test    # runs the rule tests (Node 20+)
 
 - `js/logic.js`: game rules (missions, fact picking, decoys, scoring, the mission session). Pure functions, covered by `test/`.
 - `js/play.js`: the Asteroid Blast canvas scene. `js/fuel.js`: the Fuel-Up scene. `js/cave.js`: the Cave Flight scene.
+- `js/fx.js`: optional looks and effects (robot, rocky asteroids, flames, chunks, star chart).
 - `js/main.js`: screens and wiring. `js/store.js`: saved profiles. `js/audio.js`: synthesised sounds.
 - `docs/plan/`: the original plan and mock-ups.
 

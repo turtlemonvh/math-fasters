@@ -24,8 +24,15 @@ export const answerOf = f => f.op === 'add' ? f.a + f.b : f.op === 'sub' ? f.a -
 export const usesTables = op => op === 'mul' || op === 'div';
 export const factText = f => `${f.a} ${OPS[f.op || 'mul'].sym} ${f.b}`;
 
-const NAMES = ['Launch Pad', 'Moon Run', 'Red Planet', 'Asteroid Belt', 'Gas Giant', 'Ice Rings',
-  'Comet Trail', 'Twin Suns', 'Nebula', 'Black Hole Rim', 'Star Forge'];
+// Each kind of fact is its own corner of space, with its own place names.
+export const SECTORS = { mul: 'Times Nebula', div: 'Divide Canyon', add: 'Plus Harbor', sub: 'Minus Reef' };
+const NAMES = {
+  mul: ['Launch Pad', 'Moon Run', 'Red Planet', 'Asteroid Belt', 'Gas Giant', 'Ice Rings', 'Comet Trail', 'Twin Suns', 'Nebula Gate', 'Black Hole Rim', 'Star Forge'],
+  div: ['Crater Camp', 'Split Rock', 'Canyon Run', 'Echo Caves', 'Shard Field', 'Broken Moon', 'Halfway Station', 'Prism Pass', 'Fracture Ridge', 'Meteor Mine', 'Core Vault'],
+  add: ['Star Dock', 'Cargo Bay', 'Beacon Row', 'Supply Run', 'Fuel Depot'],
+  sub: ['Drift Reef', 'Shadow Moon', 'Cold Harbor', 'Dim Star', 'Quiet Ring'],
+};
+const FINALE = { mul: 'Deep Space', div: 'The Great Divide', add: 'Grand Fleet', sub: 'The Dark Side' };
 
 export function cleanTables(tables) {
   return [...new Set(tables)].filter(n => Number.isInteger(n) && n >= 1 && n <= 12).sort((a, b) => a - b);
@@ -55,7 +62,7 @@ export function buildMissions(tables, op = 'mul') {
   const missions = groups.map((g, i) => ({
     id: pre + g.join('-'),
     op,
-    name: NAMES[i % NAMES.length],
+    name: NAMES[op][i % NAMES[op].length],
     label: g.map(n => sym + n).join(' '),
     focus: g,
     review: groups.slice(0, i).flat().filter(n => !usesTables(op) || i === 1 || n !== 1),
@@ -63,7 +70,7 @@ export function buildMissions(tables, op = 'mul') {
   }));
   if (groups.length > 1) {
     const noOnes = all.filter(n => n !== 1);
-    missions.push({ id: op === 'mul' ? 'mix' : op + 'mix', op, name: 'Deep Space', label: 'All mixed',
+    missions.push({ id: op === 'mul' ? 'mix' : op + 'mix', op, name: FINALE[op], label: 'All mixed',
       focus: usesTables(op) && noOnes.length ? noOnes : all, review: [], speed: 'fast' });
   }
   return missions;
@@ -208,7 +215,8 @@ export function isUnlocked(missions, i, progress, through = 0) {
 }
 
 // One mission's run: which fact comes next, shields, waves, score. Scenes draw it and feed it answers.
-export function createSession({ pools, stats, rng = Math.random }) {
+// days (optional): per-day tallies for the grown-up progress view, filled as answers come in.
+export function createSession({ pools, stats, days, today = dayKey, rng = Math.random }) {
   const g = { wave: 1, q: 0, score: 0, streak: 0, shields: MAX_SHIELDS, asked: 0, right: 0, misses: [], bonus: false, credit: 1 };
   let pending = [], recent = [];
   let run = 0, need = BONUS_FIRST; // quick answers in a row, and how many earn the next bonus question
@@ -234,6 +242,7 @@ export function createSession({ pools, stats, rng = Math.random }) {
     // timeLeft: fraction of the time still remaining. Returns the points scored.
     correct(fact, ms, timeLeft) {
       recordAnswer(stats, fkey(fact), true, ms);
+      if (days) recordDay(days, today(), fkey(fact), true, ms);
       const quick = timeLeft >= QUICK;
       g.credit = g.bonus && quick ? 2 : 1; // a quick right answer on a bonus question counts as two
       run = g.bonus ? 0 : quick ? run + 1 : 0;
@@ -246,6 +255,7 @@ export function createSession({ pools, stats, rng = Math.random }) {
     // Returns true when the shields are gone. The missed fact comes back two or three turns later.
     miss(fact) {
       recordAnswer(stats, fkey(fact), false, 0);
+      if (days) recordDay(days, today(), fkey(fact), false, 0);
       g.streak = 0; g.shields--; g.q++;
       run = 0; need = BONUS_FIRST; g.credit = 1;
       g.misses.push(fact);
@@ -254,4 +264,56 @@ export function createSession({ pools, stats, rng = Math.random }) {
     },
     result: completed => ({ completed, score: g.score, asked: g.asked, right: g.right, misses: g.misses }),
   };
+}
+
+// ---------- progress over time ----------
+// days: { 'YYYY-MM-DD': { factKey: [seen, right, total ms of right answers] } }
+const pad2 = n => String(n).padStart(2, '0');
+export const dayKey = (d = new Date()) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+
+export function recordDay(days, day, k, correct, ms) {
+  const d = days[day] || (days[day] = {});
+  const r = d[k] || (d[k] = [0, 0, 0]);
+  r[0]++;
+  if (correct) { r[1]++; r[2] += Math.round(ms); }
+}
+
+// kind: 'day' | 'week' (Sunday to Saturday) | 'all'. offset: 0 = current, -1 = previous, and so on.
+// Returns { from, to } as day keys (inclusive; null for 'all') and a label.
+export function periodRange(kind, offset = 0, now = new Date()) {
+  if (kind === 'all') return { from: null, to: null, label: 'All time' };
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const fmt = d => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  if (kind === 'day') {
+    start.setDate(start.getDate() + offset);
+    const label = offset === 0 ? 'Today' : offset === -1 ? 'Yesterday' : start.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+    return { from: dayKey(start), to: dayKey(start), label };
+  }
+  start.setDate(start.getDate() - start.getDay() + offset * 7);
+  const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
+  return { from: dayKey(start), to: dayKey(end), label: offset === 0 ? `This week (${fmt(start)} – ${fmt(end)})` : `${fmt(start)} – ${fmt(end)}` };
+}
+
+export const inRange = (day, range) => range.from === null || (day >= range.from && day <= range.to);
+
+// Totals per fact over a period: { factKey: { seen, right, ms (average for right answers) } }
+export function periodStats(days, range) {
+  const out = {};
+  for (const [day, facts] of Object.entries(days || {})) {
+    if (!inRange(day, range)) continue;
+    for (const [k, [seen, right, ms]] of Object.entries(facts)) {
+      const s = out[k] || (out[k] = { seen: 0, right: 0, ms: 0 });
+      s.seen += seen; s.right += right; s.ms += ms;
+    }
+  }
+  for (const s of Object.values(out)) s.ms = s.right ? Math.round(s.ms / s.right) : 0;
+  return out;
+}
+
+// Like classify, but judged only on what happened inside the period.
+export function classifyPeriod(s) {
+  if (!s || !s.seen) return 'new';
+  const acc = s.right / s.seen;
+  if (acc >= 0.9 && s.ms <= FAST_MS) return 'fast';
+  return acc >= 0.7 ? 'slow' : 'missed';
 }

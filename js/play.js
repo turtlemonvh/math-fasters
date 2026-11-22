@@ -1,12 +1,14 @@
 // Asteroid Blast: the canvas scene. Rules come from logic.js; this file is drawing, timing and input.
 import * as L from './logic.js';
 import { sfx } from './audio.js';
+import { drawRocky, numberPlate, drawFlames, flameLevel, makeChunks, drawChunks } from './fx.js';
 
 const C = { amber: '#ffb84d', teal: '#4fd6c4', coral: '#ff7a6b', ink: '#eef0fb', rock: '#5a628f', rockEdge: '#8b94c9' };
 const FONT = '"Chakra Petch","Trebuchet MS",sans-serif';
 const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
 /**
+ * opts.fx: { rocky, flames, chunks } optional looks (see fx.js); all off gives the plain look.
  * opts: { mission, session (from logic.createSession), kidSpeed, shipColor, onHud(state), onFact(text, mood), onSave(), onEnd(result) }
  * Returns { pause(), resume(), stop() }.
  */
@@ -14,6 +16,8 @@ export function createGame(canvas, opts) {
   const ctx = canvas.getContext('2d');
   const { mission, session } = opts;
   const g = session.g;
+  const fx = opts.fx || {};
+  let booms = [];
   let W = 0, H = 0, dead = false, completed = false;
   let state = 'banner', timer = 1.6, banner = 'Wave 1';
   let clock = 0, p = 0, dur = 9, cur = null;
@@ -75,6 +79,7 @@ export function createGame(canvas, opts) {
     laser = { x, y, t: 0 };
     shipAngle = Math.atan2(x - W / 2, (H - shipZone() / 2) - y);
     burst(x, y, C.amber); burst(x, y, C.rockEdge, 10);
+    if (fx.chunks && !reduceMotion) booms.push(makeChunks(x, y, R()));
     popups.push({ x, y, text: g.credit === 2 ? `DOUBLE! +${pts}` : `+${pts}`, t: 0 });
     if (g.credit === 2) burst(x, y, C.amber, 30);
     rock.mode = 'gone';
@@ -111,6 +116,7 @@ export function createGame(canvas, opts) {
     particles = particles.filter(q => (q.t += dt) < q.life);
     for (const q of particles) { q.x += q.vx * dt; q.y += q.vy * dt; q.vy += 200 * dt; }
     popups = popups.filter(q => (q.t += dt) < 0.9);
+    booms = booms.filter(b => (b.t += dt) < b.life);
     if (laser && (laser.t += dt) > 0.16) laser = null;
     shake = Math.max(0, shake - dt);
     for (const r of rocks) {
@@ -147,6 +153,17 @@ export function createGame(canvas, opts) {
     ctx.closePath();
     const gold = cur.bonus && r.mode === 'fall'; // bonus asteroids glow gold
     ctx.fillStyle = r.mode === 'bad' ? '#8f4a55' : r.mode === 'answer' ? '#2f7f7a' : gold ? '#8a6420' : C.rock;
+    if (fx.rocky) {
+      const tint = r.mode === 'bad' ? ['#f0b0a8', '#a04c52', '#3a1c2a'] : r.mode === 'answer' ? ['#b8f0e6', '#2f8f86', '#123a40'] : gold ? ['#ffe9b0', '#c9902e', '#4a3312'] : null;
+      drawRocky(ctx, rad, r.shape, r.rot, tint);
+      if (r.mode === 'answer' || r.mode === 'bad' || gold) { // keep the state outline on top of the texture
+        ctx.lineWidth = r.mode === 'answer' ? 5 + Math.sin(clock * 10) * 2 : 4;
+        ctx.strokeStyle = r.mode === 'bad' ? C.coral : r.mode === 'answer' ? C.teal : C.amber;
+        ctx.stroke();
+      }
+      ctx.restore();
+      numberPlate(ctx, rad);
+    } else {
     ctx.fill();
     ctx.lineWidth = r.mode === 'answer' ? 5 + Math.sin(clock * 10) * 2 : gold ? 5 : 3;
     ctx.strokeStyle = r.mode === 'bad' ? C.coral : r.mode === 'answer' ? C.teal : gold ? C.amber : C.rockEdge;
@@ -156,6 +173,7 @@ export function createGame(canvas, opts) {
       ctx.beginPath(); ctx.arc(cx * rad, cy * rad, cr * rad, 0, Math.PI * 2); ctx.fill();
     }
     ctx.restore();
+    }
     const txt = String(r.v);
     ctx.font = `700 ${Math.round(rad * (txt.length > 2 ? 0.66 : 0.86))}px ${FONT}`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -172,6 +190,8 @@ export function createGame(canvas, opts) {
     ctx.translate(x, y);
     ctx.rotate(laser ? shipAngle : 0);
     if (state !== 'over' || completed) {
+      const lvl = fx.flames && !laser ? flameLevel(g.streak) : 0;
+      if (lvl) drawFlames(ctx, -s * 0.4, s * 0.9, s * 0.8, -s * (1 + lvl * 0.25), 4 + lvl * 3, clock);
       ctx.fillStyle = C.coral;
       ctx.beginPath(); ctx.moveTo(-s * 0.45, s * 0.8); ctx.lineTo(0, s * (1.2 + Math.random() * 0.5)); ctx.lineTo(s * 0.45, s * 0.8); ctx.fill();
       ctx.fillStyle = opts.shipColor || C.amber;
@@ -206,6 +226,7 @@ export function createGame(canvas, opts) {
       ctx.beginPath(); ctx.moveTo(W / 2, H - shipZone() / 2); ctx.lineTo(laser.x, laser.y); ctx.stroke();
       ctx.globalAlpha = 1;
     }
+    booms.forEach(b => drawChunks(ctx, b));
     drawShip();
 
     for (const q of particles) {

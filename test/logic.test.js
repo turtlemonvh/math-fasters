@@ -173,3 +173,32 @@ test('speed bonus: quick answers earn double-credit questions and a shorter wave
   for (let i = 0; i < 2; i++) { const x = t.advance(); assert.equal(x.bonus, false); t.correct(x.fact, 500, 0.9); }
   assert.equal(t.advance().bonus, false); // back to needing three
 });
+
+test('progress over time: day tallies, week ranges and period classification', () => {
+  const days = {};
+  const T = [1, 2, 3, 4, 5, 6, 7];
+  const pools = L.missionPools(L.buildMissions(T)[2], T);
+  let day = '2026-11-20';
+  const s = L.createSession({ pools, stats: {}, days, today: () => day });
+  const f1 = s.advance().fact; s.correct(f1, 2000, 0.5);
+  day = '2026-11-22';
+  const f2 = s.advance().fact; s.miss(f2);
+  assert.deepEqual(days['2026-11-20'][L.fkey(f1)], [1, 1, 2000]);
+  assert.deepEqual(days['2026-11-22'][L.fkey(f2)], [1, 0, 0]);
+  const now = new Date(2026, 10, 22); // Sunday 22 Nov 2026
+  assert.equal(L.dayKey(now), '2026-11-22');
+  const wk = L.periodRange('week', 0, now), prev = L.periodRange('week', -1, now);
+  assert.deepEqual([wk.from, wk.to], ['2026-11-22', '2026-11-28']);
+  assert.deepEqual([prev.from, prev.to], ['2026-11-15', '2026-11-21']);
+  assert.equal(L.periodRange('day', -1, now).from, '2026-11-21');
+  assert.equal(L.classifyPeriod(L.periodStats(days, prev)[L.fkey(f1)]), 'fast');
+  assert.equal(L.periodStats(days, prev)[L.fkey(f2)], undefined);
+  assert.equal(L.classifyPeriod(L.periodStats(days, wk)[L.fkey(f2)]), 'missed');
+  assert.equal(Object.keys(L.periodStats(days, L.periodRange('all'))).length, 2);
+});
+
+test('each kind of fact has its own place names', () => {
+  const names = ['mul', 'div', 'add', 'sub'].map(op => L.buildMissions([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], op).map(m => m.name));
+  const all = names.flat();
+  assert.equal(new Set(all).size, all.length);
+});
