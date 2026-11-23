@@ -4,6 +4,10 @@ A space arcade game for practising math facts. Runs in any browser on a tablet, 
 
 **Play:** https://turtlemonvh.github.io/math-fasters/
 
+[![A few seconds of Asteroid Blast](docs/trailer/math-fasters.gif)](https://turtlemonvh.github.io/math-fasters/docs/trailer/math-fasters-trailer.mp4)
+
+**Trailer (37 seconds, with sound):** https://turtlemonvh.github.io/math-fasters/docs/trailer/math-fasters-trailer.mp4
+
 ## Three games, four kinds of facts
 
 Pick a game on the mission map:
@@ -61,5 +65,7 @@ npm test    # runs the rule tests (Node 20+)
 - `js/perf.js`: lowers the drawing resolution, then thins the optional effects, when a device cannot keep up.
 - `js/main.js`: screens and wiring. `js/store.js`: saved profiles. `js/audio.js`: synthesised sounds.
 - `docs/plan/`: the original plan and mock-ups.
+- `docs/trailer/`: the finished trailer, a short GIF and a poster image.
+- `trailer/`: how the trailer is made. It films the real game and is not part of the game itself. See `trailer/README.md`.
 
 This is an original game. All art is drawn in code and all sounds are synthesised.
