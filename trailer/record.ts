@@ -74,7 +74,12 @@ async function recordShot(id: ShotId) {
   await page.addInitScript({ path: join(here, 'virtual-time.js') });
   await page.addInitScript({ path: join(here, 'director.js') });
   await page.goto(`${BASE}/index.html?take=${id}`);
-  await page.waitForFunction(() => (window as unknown as FilmSet).__trailer?.ready);
+  // Checked from here, not with waitForFunction: that polls on the page's own timers, which are frozen.
+  for (let tries = 0; ; tries++) {
+    if (await page.evaluate(() => (window as unknown as FilmSet).__trailer?.ready)) break;
+    if (tries > 150) throw new Error(`[${id}] never became ready: ${problems.join(' | ')}`);
+    await new Promise((r) => setTimeout(r, 100));
+  }
 
   for (let i = 0; i < 10; i++) await tick(page);
   await page.evaluate(() => {

@@ -10,5 +10,5 @@
     "resolveJsonModule": true,
     "types": ["node"]
   },
-  "include": ["src", "record.ts"]
+  "include": ["src", "record.ts", "music.ts"]
 }

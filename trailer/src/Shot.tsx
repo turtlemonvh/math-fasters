@@ -21,18 +21,21 @@ export function Shot({
   from,
   sound = false,
   volume = 1,
+  rate = 1,
   style,
 }: {
   id: ShotId;
   from: number;
   sound?: boolean;
   volume?: number;
+  /** Playback speed: 1.4 shows the take 40% faster. */
+  rate?: number;
   style?: CSSProperties;
 }) {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
   const first = Math.round(from * FPS);
-  const index = Math.max(0, Math.min(TAKES[id].frames - 1, first + frame));
+  const index = Math.max(0, Math.min(TAKES[id].frames - 1, first + Math.round(frame * rate)));
   return (
     <>
       <Img
@@ -43,6 +46,7 @@ export function Shot({
         <Audio
           src={staticFile(`shots/${id}/audio.wav`)}
           trimBefore={first}
+          playbackRate={rate}
           // A few frames of fade at each end, so a cut never lands as a click.
           volume={(f) =>
             volume *

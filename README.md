@@ -6,7 +6,7 @@ A space arcade game for practising math facts. Runs in any browser on a tablet, 
 
 [![A few seconds of Asteroid Blast](docs/trailer/math-fasters.gif)](https://turtlemonvh.github.io/math-fasters/docs/trailer/math-fasters-trailer.mp4)
 
-**Trailer (37 seconds, with sound):** https://turtlemonvh.github.io/math-fasters/docs/trailer/math-fasters-trailer.mp4
+**Trailer (52 seconds, with sound):** https://turtlemonvh.github.io/math-fasters/docs/trailer/math-fasters-trailer.mp4
 
 ## Three games, four kinds of facts
 

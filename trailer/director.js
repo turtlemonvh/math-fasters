@@ -9,33 +9,58 @@
   if (!take) return;
 
   // ---------- fixed random numbers ----------
-  let seed = 20261;
-  const rnd = () => {
+  const stream = seed => () => {
     seed = (seed + 0x6d2b79f5) | 0;
     let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
-  // The demo data below has its own stream, so changing it never changes the gameplay.
-  let dseed = 77;
-  const drnd = () => {
-    dseed = (dseed * 1664525 + 1013904223) >>> 0;
-    return dseed / 4294967296;
+  // Separate streams. The game's rules (which fact comes next, which wrong answers are offered)
+  // draw from their own, so two takes of one mission ask the same questions even when one of them
+  // has extra effects that use random numbers for sparks and rubble.
+  const rulesRnd = stream(20261), looksRnd = stream(555), playerRnd = stream(9), dataRnd = stream(77);
+  Math.random = () => (new Error().stack.includes('/js/logic.js') ? rulesRnd() : looksRnd());
+
+  // ---------- the takes ----------
+  const ALL_FX = { robot: true, rocky: true, sounds: true, flames: true, chunks: true, chart: true };
+  const NO_FX = { robot: false, rocky: false, sounds: false, flames: false, chunks: false, chart: false };
+  // think: seconds the player waits before answering. miss: questions (1-based) answered wrong.
+  // linger: seconds spent on the mission map before starting.
+  const play = (scene, op, mission, more = {}) => ({ kind: 'play', scene, op, mission, think: 1.4, miss: [], linger: 0, fx: ALL_FX, speed: 'medium', ...more });
+  const PLAN = {
+    // The hero shot: asteroids fall well into view before each answer, and the second answer is wrong.
+    blast: play('blast', 'mul', 't6', { think: 2.3, miss: [2] }),
+    // A whole mission played briskly with no misses, for the results screen.
+    result: play('blast', 'mul', 't6', { think: 0.8 }),
+    fuel: play('fuel', 'div', 'div4', { think: 1.3 }),
+    cave: play('cave', 'sub', 'sub5-6', { think: 0.8 }),
+    // One addition mission on three screen shapes.
+    add: play('blast', 'add', 'add7-8', { think: 1.7 }),
+    'add-wide': play('blast', 'add', 'add7-8', { think: 1.7 }),
+    'add-tall': play('blast', 'add', 'add7-8', { think: 1.7 }),
+    // One mission twice: everything switched off, and everything switched on.
+    calm: play('blast', 'mul', 't7', { think: 1.8, linger: 1.6, fx: NO_FX }),
+    lively: play('blast', 'mul', 't7', { think: 1.8, linger: 1.6 }),
+    // One mission at the slowest and the fastest setting.
+    slow: play('blast', 'mul', 't5', { think: 5, speed: 'slow' }),
+    fast: play('blast', 'mul', 't5', { think: 5, speed: 'fast' }),
+    tune: { kind: 'tune', scene: 'blast', op: 'mul', fx: ALL_FX, speed: 'medium', ops: ['mul', 'div'] },
+    progress: { kind: 'progress', scene: 'blast', op: 'mul', fx: ALL_FX, speed: 'medium', rich: true },
   };
-  Math.random = rnd;
+  const plan = PLAN[take];
+  if (!plan) throw new Error(`Unknown take: ${take}`);
 
   // ---------- demo pilot ----------
   const pad2 = n => String(n).padStart(2, '0');
   const dayKey = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-  const SYM = { mul: 'x', div: '/', add: '+', sub: '-' };
 
   function demoData() {
-    const rich = take === 'map' || take === 'progress'; // these takes show a pilot who has played a lot
+    const rich = !!plan.rich; // a pilot who has played a lot, for the progress grid
     const facts = {}, today = {};
     const add = (key, skill) => {
-      const seen = 2 + Math.floor(drnd() * 5);
-      const right = skill > 0.8 ? seen : Math.max(0, Math.round(seen * (skill + (drnd() - 0.5) * 0.3)));
-      const ms = skill > 0.8 ? 1500 + drnd() * 1800 : 3500 + drnd() * 3000;
+      const seen = 2 + Math.floor(dataRnd() * 5);
+      const right = skill > 0.8 ? seen : Math.max(0, Math.round(seen * (skill + (dataRnd() - 0.5) * 0.3)));
+      const ms = skill > 0.8 ? 1500 + dataRnd() * 1800 : 3500 + dataRnd() * 3000;
       facts[key] = { seen, right, streak: right === seen ? seen : 0, ms: Math.round(ms) };
       today[key] = [seen, right, Math.round(ms * right)];
     };
@@ -44,7 +69,7 @@
       const hard = Math.max(a, b);
       if (!rich && a >= 6) continue;
       if (rich && a === 7 && b > 4) continue;
-      add(`${a}x${b}`, hard <= 4 ? 0.95 : hard === 5 ? 0.9 : a * b === 42 || a * b === 49 || a * b === 36 ? 0.45 : drnd() < 0.5 ? 0.9 : 0.72);
+      add(`${a}x${b}`, hard <= 4 ? 0.95 : hard === 5 ? 0.9 : a * b === 42 || a * b === 49 || a * b === 36 ? 0.45 : dataRnd() < 0.5 ? 0.9 : 0.72);
     }
     if (rich) {
       for (let b = 1; b <= 4; b++) for (let c = 1; c <= 7; c++) add(`${b * c}/${b}`, b <= 3 ? 0.95 : 0.75);
@@ -61,7 +86,7 @@
       t: now - (i + 1) * 9 * 60000, op, scene, name, label, done: true, stars, score, asked, right, secs,
       missed: right < asked ? ['6 × 7 = 42'] : [],
     })) : [];
-    const stars = (ids, n) => Object.fromEntries(ids.map((id, i) => [id, { stars: Array.isArray(n) ? n[i] : n, best: 4200 + i * 310, plays: 2 }]));
+    const stars = (ids, n) => Object.fromEntries(ids.map((id, i) => [id, { stars: n[i], best: 4200 + i * 310, plays: 2 }]));
     const missions = rich
       ? { ...stars(['t1-2', 't3', 't4', 't5', 't6'], [3, 3, 3, 3, 2]), ...stars(['div1-2', 'div3', 'div4'], [3, 3, 2]), ...stars(['add1-2', 'add3-4', 'add5-6'], [3, 3, 3]), ...stars(['sub1-2', 'sub3-4'], [3, 2]) }
       : stars(['t1-2', 't3', 't4', 't5'], [3, 3, 2, 2]);
@@ -70,14 +95,15 @@
       profiles: [{
         id: 'nova', name: 'Nova', color: '#4fd6c4',
         settings: {
-          tables: [1, 2, 3, 4, 5, 6, 7], speed: 'medium', unlockAll: false,
-          // On the map take every mission is open: the lock symbol has no glyph in the recording browser.
-          ...(take === 'map' ? { startAt: { mul: 9, div: 9, add: 9, sub: 9 } } : {}),
-          ops: ['mul', 'div', 'add', 'sub'],
-          fx: { robot: true, rocky: true, sounds: true, flames: true, chunks: true, chart: true },
+          tables: [1, 2, 3, 4, 5, 6, 7], speed: plan.speed, unlockAll: false,
+          // Every mission is open, so any of them can be filmed (and the lock symbol,
+          // which has no glyph in the recording browser, never shows).
+          startAt: { mul: 9, div: 9, add: 9, sub: 9 },
+          ops: plan.ops || ['mul', 'div', 'add', 'sub'],
+          fx: plan.fx,
         },
         missions, facts, days: { [dayKey(new Date())]: today }, log,
-        last: { op: 'mul', scene: PLAN[take].scene || 'blast' },
+        last: { op: plan.op, scene: plan.scene },
       }],
     };
   }
@@ -109,16 +135,30 @@
     pointer(el, 'pointerdown', x, y);
     el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
   }
+  // Scroll a long screen like a thumb would, until the element sits about a third of the way down.
+  async function scrollTo(sel, ms = 600) {
+    const page = $('.screen.active'), el = $(sel);
+    const from = page.scrollTop;
+    const to = Math.max(0, Math.min(page.scrollHeight - page.clientHeight, from + el.getBoundingClientRect().top - page.clientHeight * 0.3));
+    const began = performance.now();
+    await new Promise(done => {
+      const slide = setInterval(() => {
+        const k = Math.min(1, (performance.now() - began) / ms);
+        page.scrollTop = from + (to - from) * (1 - (1 - k) ** 3);
+        if (k >= 1) { clearInterval(slide); done(); }
+      }, 16);
+    });
+  }
 
   // ---------- the scripted player ----------
-  // Watches the real game through its debug hook and answers each question after a short "thinking" pause.
+  // Watches the real game through its debug hook and answers each question after a "thinking" pause.
   const ASKING = ['fall', 'ask', 'fly'];
-  function autoplay(scene) {
+  function autoplay() {
     let prev = '', asked = 0, waves = 0, due = null;
     const canvas = $('#game');
     const act = {
-      blast(d) {
-        const rock = d.rocks.find(r => r.v === d.answer && r.mode === 'fall');
+      blast(d, wrong) {
+        const rock = d.rocks.find(r => (r.v === d.answer) !== wrong && r.mode === 'fall');
         if (!rock) return;
         const rect = canvas.getBoundingClientRect();
         tapDot(rect.left + rock.x, rect.top + rock.y);
@@ -130,7 +170,7 @@
           const [x, y] = centre(key);
           tapDot(x, y);
           pointer(key, 'pointerdown', x, y);
-        }, i * 230));
+        }, i * 260));
       },
       cave(d) {
         const rect = canvas.getBoundingClientRect(), lanes = d.gates.length;
@@ -140,9 +180,9 @@
         setTimeout(() => {
           tapDot(rect.left + rect.width * 0.8, rect.top + rect.height * 0.5);
           window.__game.boost();
-        }, 520);
+        }, 600);
       },
-    }[scene];
+    }[plan.scene];
     const loop = () => {
       requestAnimationFrame(loop);
       if ($('#s-result.active')) { mark('result'); return; }
@@ -151,58 +191,64 @@
       if (d.state !== prev) {
         if (ASKING.includes(d.state)) {
           asked++;
-          mark('q1');
-          mark(`q${asked}`);
+          mark(`q${asked}`); // question appears
           if ($('#s-play').classList.contains('bonus')) mark('bonus');
-          // Thinking time: brisk, a little uneven, like a child who knows these.
-          due = performance.now() + 620 + rnd() * 420 + (asked === 1 ? 500 : 0);
+          due = performance.now() + plan.think * 1000 * (0.9 + playerRnd() * 0.2);
         }
         if (d.state === 'launch') mark('launch');
         if (d.state === 'banner' && asked) mark(`wave${++waves + 1}`);
         prev = d.state;
       }
-      if (due !== null && ASKING.includes(d.state) && performance.now() >= due) { due = null; act(d); }
+      if (due !== null && ASKING.includes(d.state) && performance.now() >= due) {
+        due = null;
+        mark(`a${asked}`); // question answered
+        act(d, plan.miss.includes(asked));
+      }
     };
     requestAnimationFrame(loop);
   }
 
-  async function playMission(scene, id) {
-    tap('[data-act="pick-pilot"]');
-    await wait(60);
-    // The star chart draws missions as planets; each one carries the same data-id as the list buttons.
-    const target = $(`[data-act="play-mission"][data-id="${id}"]`);
-    if (!target) throw new Error(`Mission ${id} is not on the map`);
-    target.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    mark('play');
-    autoplay(scene);
-  }
-
-  // Each take: which game the demo pilot last chose, and what happens once filming starts.
-  const PLAN = {
-    blast: { scene: 'blast', run: () => playMission('blast', 't6') },
-    'blast-wide': { scene: 'blast', run: () => playMission('blast', 't6') },
-    'blast-tall': { scene: 'blast', run: () => playMission('blast', 't6') },
-    fuel: { scene: 'fuel', run: () => playMission('fuel', 't5') },
-    cave: { scene: 'cave', run: () => playMission('cave', 't4') },
-  };
-  // Pilot screen, then the star chart, flipping through the four kinds of facts.
-  PLAN.map = {
-    scene: 'blast',
-    async run() {
-      await wait(900);
-      tap('[data-act="pick-pilot"]'); mark('map');
-      for (const op of ['div', 'add', 'sub', 'mul']) {
-        await wait(1150);
-        tap(`[data-act="set-op"][data-v="${op}"]`); mark(op);
-      }
-      await wait(1000);
-      tap('[data-act="set-scene"][data-v="cave"]');
+  const RUN = {
+    async play() {
+      tap('[data-act="pick-pilot"]');
+      mark('map');
+      await wait(plan.linger ? plan.linger * 1000 : 60);
+      // List buttons and star-chart planets both carry data-id.
+      const target = $(`[data-act="play-mission"][data-id="${plan.mission}"]`);
+      if (!target) throw new Error(`Mission ${plan.mission} is not on the map`);
+      if (plan.linger) tap(target); else target.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      mark('play');
+      autoplay();
     },
-  };
-  // Hold the gear for two seconds, then open the progress grid.
-  PLAN.progress = {
-    scene: 'blast',
-    async run() {
+    // A grown-up holds the gear, then switches subjects on, adds times tables and changes the speed.
+    async tune() {
+      tap('[data-act="pick-pilot"]');
+      await wait(300);
+      const gear = $('#gear'), [x, y] = centre(gear);
+      tapDot(x, y); pointer(gear, 'pointerdown', x, y); mark('hold');
+      await wait(2100);
+      mark('settings');
+      await wait(900);
+      tap('[data-act="toggle-op"][data-v="add"]'); mark('ops');
+      await wait(750);
+      tap('[data-act="toggle-op"][data-v="sub"]');
+      await wait(900);
+      await scrollTo('[data-act="toggle-table"]', 450);
+      for (const n of [8, 9, 10]) {
+        await wait(n === 8 ? 350 : 520);
+        tap(`[data-act="toggle-table"][data-v="${n}"]`); mark('tables');
+      }
+      await wait(900);
+      await scrollTo('[data-act="set-speed"]', 450);
+      await wait(350);
+      tap('[data-act="set-speed"][data-v="slow"]'); mark('speed');
+      await wait(900);
+      tap('[data-act="set-speed"][data-v="fast"]');
+      await wait(900);
+      mark('end');
+    },
+    // Hold the gear for two seconds, then open the progress grid.
+    async progress() {
       tap('[data-act="pick-pilot"]');
       await wait(500);
       const gear = $('#gear'), [x, y] = centre(gear);
@@ -212,20 +258,13 @@
       await wait(700);
       tap('[data-act="set-tab"][data-v="progress"]'); mark('grid');
       await wait(500);
-      // Scroll down like a thumb would, so the whole grid is in view.
-      const page = $('#s-settings'), from = page.scrollTop, to = 330, began = performance.now();
-      const slide = setInterval(() => {
-        const k = Math.min(1, (performance.now() - began) / 700), e = 1 - (1 - k) ** 3;
-        page.scrollTop = from + (to - from) * e;
-        if (k >= 1) clearInterval(slide);
-      }, 16);
-      await wait(1200);
+      await scrollTo('.grids', 700);
+      await wait(500);
       tap('[data-act="view-op"][data-v="div"]'); mark('div');
       await wait(1300);
       tap('[data-act="view-op"][data-v="all"]'); mark('all');
     },
   };
-  if (!PLAN[take]) throw new Error(`Unknown take: ${take}`);
 
   try { localStorage.setItem('mathfasters.v1', JSON.stringify(demoData())); } catch (e) { console.error(e); }
 
@@ -234,7 +273,7 @@
     marks,
     start() {
       t0 = performance.now();
-      PLAN[take].run().catch(e => console.error(e));
+      RUN[plan.kind]().catch(e => console.error(e));
     },
   };
   window.addEventListener('load', async () => {
